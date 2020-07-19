@@ -10,6 +10,5 @@ require (
 	github.com/freddy33/graphml v1.0.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/sirupsen/logrus v1.6.0
-	github.com/satori/go.uuid v1.2.0
 	github.com/stretchr/testify v1.3.0
 )

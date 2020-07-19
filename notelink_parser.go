@@ -8,33 +8,6 @@ import (
 	"github.com/antchfx/htmlquery"
 )
 
-// LinkType identifies the type of a NoteLink
-type LinkType int
-
-// Enum of all LinkTypes (see Evernote API documentation at https://dev.evernote.com/doc/articles/note_links.php)
-const (
-	AppLink       LinkType = iota // 'In-App Note Link'
-	WebLink       LinkType = iota // 'Note Link'
-	PublicLink    LinkType = iota // 'Public Link'
-	ShortenedLink LinkType = iota // 'Evernote Shortened URLs'
-)
-
-func (lt LinkType) String() string {
-	return [...]string{"AppLink", "WebLink", "PublicLink", "ShortenedLink"}[lt]
-}
-
-// NoteLink is an app, web, public, or shortened link that points to an Evernote note (see Evernote API documentation at https://dev.evernote.com/doc/articles/note_links.php)
-type NoteLink struct {
-	Type     LinkType
-	URL      url.URL
-	Text     string
-	NoteGUID string // is not set for ShortenedLinks
-}
-
-func (nl NoteLink) String() string {
-	return fmt.Sprintf("{Type: %s, URL: %s, Text: %s, NoteGUID %s}", nl.Type.String(), nl.URL.String(), nl.Text, nl.NoteGUID)
-}
-
 // NoteLinkParser can be used to create and parse NoteLinks
 type NoteLinkParser struct {
 	EvernoteHost string
