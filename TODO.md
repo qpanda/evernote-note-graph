@@ -6,6 +6,7 @@
 * Add IncludeLinkTypes parmaeter to EvernoteNoteGraph to choose which LinkTypes to consider for links in the NoteGraph
 
 # Improvements
+* Change NoteGraph.Validate to NoteGraph.RemoveBrokenLinks to remove NoteLinks that point to non-existing Notes/GUIDs (add tests, then call RemoveBrokenLinks in EvernoteNoteGraph.CreateNoteGraph before returning the NoteGraph)
 * Review usage of pass-by-value vs pass-by-reference across the codebase for efficiency purpose
 * Consider surrounding note and edge labels and descriptsion with CDATA in GraphML output
 * Review codebase for missing parameter validation
