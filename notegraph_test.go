@@ -38,4 +38,10 @@ func TestValidate(t *testing.T) {
 	noteGraphC.AddNote(Note{GUID: "1"}, []NoteLink{{NoteGUID: "2"}})
 	noteGraphC.AddNote(Note{GUID: "2"}, []NoteLink{})
 	assert.True(t, noteGraphC.Validate())
+
+	noteGraphD := NewNoteGraph()
+	noteGraphD.AddNote(Note{GUID: "1"}, []NoteLink{{NoteGUID: "2"}})
+	noteGraphD.AddNote(Note{GUID: "2"}, []NoteLink{})
+	noteGraphD.AddNote(Note{GUID: "3"}, []NoteLink{})
+	assert.True(t, noteGraphD.Validate())
 }

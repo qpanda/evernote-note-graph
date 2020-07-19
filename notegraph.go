@@ -83,11 +83,13 @@ func (ng *NoteGraph) AddNote(note Note, noteLinks []NoteLink) bool {
 
 // Validate checks whether all NoteLinks point to an existing Note
 func (ng *NoteGraph) Validate() bool {
-	if len(ng.NoteGUIDs) == len(ng.LinkedNoteGUIDs) {
-		return true
+	for linkedNoteGUID := range ng.LinkedNoteGUIDs {
+		if !ng.NoteGUIDs[linkedNoteGUID] {
+			return false
+		}
 	}
 
-	return false
+	return true
 }
 
 // GetNotes returns all Notes added to the NoteGraph
