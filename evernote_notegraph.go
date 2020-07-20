@@ -8,9 +8,6 @@ import (
 // PageSize specifies the number of notes to fetch metadata from the Evernote API from in one go
 const PageSize = 100
 
-// NoteGraphID is the ID used for the note graph of the GraphML document
-const NoteGraphID = "NoteGraph"
-
 // EvernoteNoteGraph generates a NoteGraph of all Evernote notes and stores the graph as GraphML document
 type EvernoteNoteGraph struct {
 	EvernoteClient IEvernoteClient

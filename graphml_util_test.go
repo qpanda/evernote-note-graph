@@ -12,8 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var graphMLUtil = GraphMLUtil{}
-
 const (
 	NodeAID          = "A"
 	NodeALabel       = "Node A Label"
@@ -101,11 +99,14 @@ func TestSaveGraphMLDocument(t *testing.T) {
 	testGraphFile := filepath.Join(os.TempDir(), "testGraph.graphml")
 	defer os.Remove(testGraphFile)
 
+	graphMLUtil := GraphMLUtil{}
 	graphMLDocument := CreateTestGraphMLDocument()
 	graphMLUtil.SaveGraphMLDocument(testGraphFile, graphMLDocument)
 }
 
 func CreateTestGraphMLDocument() *graphml.Document {
+	graphMLUtil := GraphMLUtil{}
+
 	nodeA := graphMLUtil.CreateNode(NodeAID, NodeALabel, NodeADescription, NodeAURL)
 	nodeB := graphMLUtil.CreateNode(NodeBID, NodeBLabel, NodeBDescription, NodeBURL)
 	nodeC := graphMLUtil.CreateNode(NodeCID, NodeCLabel, NodeCDescription, NodeCURL)
