@@ -1,9 +1,8 @@
 # Features
-* Add main function to launch from command line
 * Introduce command line arguments to control graph generation
 * Add LinkType parameter to EvernoteNoteGraph to make it possible to choose AppLink and WebLink for links in NoteGraph
-* Add IncludeUnlinkedNotes parameter to EvernoteNoteGraph to control whether all or only linked Notes are included in the NoteGraph
-* Add IncludeLinkTypes parmaeter to EvernoteNoteGraph to choose which LinkTypes to consider for links in the NoteGraph
+* Add IncludeUnlinkedNotes parameter to NoteGraphUtil to control whether all or only linked Notes are included in the NoteGraph
+* Add IncludeLinkTypes parameter to EvernoteNoteGraph to choose which LinkTypes to consider for links in the NoteGraph
 
 # Improvements
 * Review usage of pass-by-value vs pass-by-reference across the codebase for efficiency purpose

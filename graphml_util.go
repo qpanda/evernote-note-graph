@@ -40,6 +40,11 @@ const EdgeDescriptionName = "description"
 // GraphMLUtil provides a number of util methods to create GraphML documents with standardized node and edge data
 type GraphMLUtil struct{}
 
+// NewGraphMLUtil creates a new instance of GraphMLUtil
+func NewGraphMLUtil() *GraphMLUtil {
+	return &GraphMLUtil{}
+}
+
 // SaveGraphMLDocument saves the provided graphMLDocument with the specified filename on the file system
 func (gu *GraphMLUtil) SaveGraphMLDocument(filename string, graphMLDocument *graphml.Document) error {
 	file, fileErr := os.Create(filename)
