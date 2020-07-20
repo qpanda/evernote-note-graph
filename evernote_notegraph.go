@@ -43,7 +43,7 @@ func (eng *EvernoteNoteGraph) CreateNoteGraph() (*NoteGraph, error) {
 				return nil, err
 			}
 
-			noteGraph.AddNote(*note, noteLinks)
+			noteGraph.Add(*note, noteLinks)
 		}
 
 		remainingNotes := noteMetadataList.TotalNotes - (noteMetadataList.StartIndex + int32(len(noteMetadataList.Notes)))

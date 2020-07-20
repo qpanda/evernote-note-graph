@@ -115,8 +115,6 @@ func TestCreateNoteGraphWithNoNotes(t *testing.T) {
 
 	assert.Empty(t, noteGraph.Notes)
 	assert.Empty(t, noteGraph.NoteLinks)
-	assert.Empty(t, noteGraph.NoteGUIDs)
-	assert.Empty(t, noteGraph.LinkedNoteGUIDs)
 }
 
 func TestCreateNoteGraphWithNotes(t *testing.T) {
@@ -141,6 +139,4 @@ func TestCreateNoteGraphWithNotes(t *testing.T) {
 
 	assert.Len(t, noteGraph.Notes, 1)
 	assert.Len(t, noteGraph.NoteLinks, 2)
-	assert.Len(t, noteGraph.NoteGUIDs, 1)
-	assert.Len(t, noteGraph.LinkedNoteGUIDs, 3)
 }

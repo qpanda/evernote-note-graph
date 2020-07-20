@@ -47,70 +47,87 @@ func (nl NoteLink) String() string {
 
 // NoteGraph contains all Notes and NoteLinks and keeps track of which Notes are linked to other Notes
 type NoteGraph struct {
-	Notes           []Note          // all Notes
-	NoteLinks       []NoteLink      // all NoteLinks
-	NoteGUIDs       map[string]bool // GUIDs of all notes
-	LinkedNoteGUIDs map[string]bool // GUIDs of notes linked to other notes
+	Notes     map[string]Note // all Notes
+	NoteLinks []NoteLink      // all NoteLinks
 }
 
 // NewNoteGraph creates a new instance of NoteGraph
 func NewNoteGraph() *NoteGraph {
 	return &NoteGraph{
-		Notes:           []Note{},
-		NoteLinks:       []NoteLink{},
-		NoteGUIDs:       map[string]bool{},
-		LinkedNoteGUIDs: map[string]bool{},
+		Notes:     map[string]Note{},
+		NoteLinks: []NoteLink{},
 	}
 }
 
-// AddNote adds a Note with all its NoteLinks to the NoteGraph, returns true if the Note is a linked note, otherwise false
-func (ng *NoteGraph) AddNote(note Note, noteLinks []NoteLink) bool {
-	ng.Notes = append(ng.Notes, note)
-	ng.NoteGUIDs[note.GUID] = true
-
+// Add adds a Note with all its NoteLinks to the NoteGraph, returns true if the Note is a linked note, otherwise false
+func (ng *NoteGraph) Add(note Note, noteLinks []NoteLink) bool {
+	ng.Notes[note.GUID] = note
 	ng.NoteLinks = append(ng.NoteLinks, noteLinks...)
-	if len(noteLinks) != 0 {
-		// if the Note contains NoteLinks we remember the GUID of the Note and the GUIDs of all notes this Note links to
-		ng.LinkedNoteGUIDs[note.GUID] = true
-		for _, noteLink := range noteLinks {
-			ng.LinkedNoteGUIDs[noteLink.TargetNoteGUID] = true
-		}
-
-		return true
-	}
-
-	return false
-}
-
-// Validate checks whether all NoteLinks point to an existing Note
-func (ng *NoteGraph) Validate() bool {
-	for linkedNoteGUID := range ng.LinkedNoteGUIDs {
-		if !ng.NoteGUIDs[linkedNoteGUID] {
-			return false
-		}
-	}
-
-	return true
+	return len(noteLinks) != 0
 }
 
 // GetNotes returns all Notes added to the NoteGraph
 func (ng *NoteGraph) GetNotes() *[]Note {
-	return &ng.Notes
-}
-
-// GetLinkedNotes returns all linked Notes of the NoteGraph
-func (ng *NoteGraph) GetLinkedNotes() *[]Note {
-	linkedNotes := []Note{}
+	notes := []Note{}
 	for _, note := range ng.Notes {
-		if ng.LinkedNoteGUIDs[note.GUID] {
-			linkedNotes = append(linkedNotes, note)
-		}
+		notes = append(notes, note)
 	}
 
-	return &linkedNotes
+	return &notes
 }
 
 // GetNoteLinks returns all NoteLinks added to the NoteGraph
 func (ng *NoteGraph) GetNoteLinks() *[]NoteLink {
 	return &ng.NoteLinks
+}
+
+// GetLinkedNotes returns source and target Notes of all NoteLinks where both source and target Note exists
+func (ng *NoteGraph) GetLinkedNotes() *[]Note {
+	linkedNotes := map[string]Note{}
+	for _, noteLink := range ng.NoteLinks {
+		sourceNote, sourceNoteFound := ng.Notes[noteLink.SourceNoteGUID]
+		targetNote, targetNoteFound := ng.Notes[noteLink.TargetNoteGUID]
+
+		if sourceNoteFound && targetNoteFound {
+			linkedNotes[sourceNote.GUID] = sourceNote
+			linkedNotes[targetNote.GUID] = targetNote
+		}
+	}
+
+	notes := []Note{}
+	for _, note := range linkedNotes {
+		notes = append(notes, note)
+	}
+
+	return &notes
+}
+
+// GetValidNoteLinks returns all valid NoteLinks (both source and target Note exist)
+func (ng *NoteGraph) GetValidNoteLinks() *[]NoteLink {
+	validNoteLinks := []NoteLink{}
+	for _, noteLink := range ng.NoteLinks {
+		_, sourceNoteFound := ng.Notes[noteLink.SourceNoteGUID]
+		_, targetNoteFound := ng.Notes[noteLink.TargetNoteGUID]
+
+		if sourceNoteFound && targetNoteFound {
+			validNoteLinks = append(validNoteLinks, noteLink)
+		}
+	}
+
+	return &validNoteLinks
+}
+
+// GetBrokenNoteLinks returns all broken NoteLinks, either source, or target, or both notes missing
+func (ng *NoteGraph) GetBrokenNoteLinks() *[]NoteLink {
+	brokenNoteLinks := []NoteLink{}
+	for _, noteLink := range ng.NoteLinks {
+		_, sourceNoteFound := ng.Notes[noteLink.SourceNoteGUID]
+		_, targetNoteFound := ng.Notes[noteLink.TargetNoteGUID]
+
+		if !(sourceNoteFound && targetNoteFound) {
+			brokenNoteLinks = append(brokenNoteLinks, noteLink)
+		}
+	}
+
+	return &brokenNoteLinks
 }
