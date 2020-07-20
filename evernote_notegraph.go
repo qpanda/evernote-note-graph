@@ -96,7 +96,7 @@ func (eng *EvernoteNoteGraph) FetchContentAndExtractNoteLinks(noteMetadata *edam
 	}
 
 	logrus.Debugf("Parsing ENML of Evernote note with GUID [%s] and title [%s]", noteMetadata.GetGUID(), noteMetadata.GetTitle())
-	noteLinks, err := eng.NoteLinkParser.ExtractNoteLinks(evernoteNote.GetContent())
+	noteLinks, err := eng.NoteLinkParser.ExtractNoteLinks(string(evernoteNote.GetGUID()), evernoteNote.GetContent())
 	if err != nil {
 		return nil, err
 	}

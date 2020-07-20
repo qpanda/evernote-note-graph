@@ -36,10 +36,10 @@ func TestSelectNoteLinks(t *testing.T) {
 	evernoteNoteGraph := NewEvernoteNoteGraph(nil, nil)
 
 	note := &Note{GUID: "1"}
-	noteLinks := []NoteLink{{NoteGUID: "1", Type: AppLink}, {NoteGUID: "2", Type: WebLink}, {NoteGUID: "3", Type: PublicLink}, {NoteGUID: "4", Type: ShortenedLink}}
+	noteLinks := []NoteLink{{SourceNoteGUID: note.GUID, TargetNoteGUID: "1", Type: AppLink}, {SourceNoteGUID: note.GUID, TargetNoteGUID: "2", Type: WebLink}, {SourceNoteGUID: note.GUID, TargetNoteGUID: "3", Type: PublicLink}, {SourceNoteGUID: note.GUID, TargetNoteGUID: "4", Type: ShortenedLink}}
 	selectedNoteLinks := evernoteNoteGraph.SelectNoteLinks(note, noteLinks)
 
-	assert.ElementsMatch(t, selectedNoteLinks, []NoteLink{{NoteGUID: "1", Type: AppLink}, {NoteGUID: "2", Type: WebLink}})
+	assert.ElementsMatch(t, selectedNoteLinks, []NoteLink{{SourceNoteGUID: note.GUID, TargetNoteGUID: "1", Type: AppLink}, {SourceNoteGUID: note.GUID, TargetNoteGUID: "2", Type: WebLink}})
 }
 
 func TestCreateNote(t *testing.T) {

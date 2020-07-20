@@ -24,8 +24,8 @@ func NewNoteLinkParser(evernoteHost, userID, shardID string) *NoteLinkParser {
 }
 
 // ExtractNoteLinks extracts all NoteLinks detected / found in the supplied note content (ENML)
-func (elp *NoteLinkParser) ExtractNoteLinks(enml string) ([]NoteLink, error) {
-	enmlDocument, err := htmlquery.Parse(strings.NewReader(enml))
+func (elp *NoteLinkParser) ExtractNoteLinks(noteGUID, noteContent string) ([]NoteLink, error) {
+	enmlDocument, err := htmlquery.Parse(strings.NewReader(noteContent))
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func (elp *NoteLinkParser) ExtractNoteLinks(enml string) ([]NoteLink, error) {
 			return nil, err
 		}
 
-		noteLink := elp.ParseNoteLink(*linkURL, linkText)
+		noteLink := elp.ParseNoteLink(noteGUID, *linkURL, linkText)
 		if noteLink != nil {
 			noteLinks = append(noteLinks, *noteLink)
 		}
@@ -51,27 +51,27 @@ func (elp *NoteLinkParser) ExtractNoteLinks(enml string) ([]NoteLink, error) {
 // ParseNoteLink parses the supplied URL and returns a NoteLink if the URL points to an Evernote note, otherwise returns nil
 // For AppLinks and WebLinks method ParseNoteLink verifies that the link is for the user and shard provided when creating the NoteLinkParser
 // (AppLinks and WebLinks for other users are not accessible) and if this is not the case returns nil instead of the AppLink / WebLink
-func (elp *NoteLinkParser) ParseNoteLink(linkURL url.URL, linkText string) *NoteLink {
+func (elp *NoteLinkParser) ParseNoteLink(noteGUID string, linkURL url.URL, linkText string) *NoteLink {
 	trimmedPath := strings.TrimRight(linkURL.Path, "/")
 	pathElements := strings.Split(trimmedPath, "/")
 
 	if linkURL.Scheme == "evernote" {
 		if len(pathElements) == 6 && pathElements[1] == "view" && pathElements[2] == elp.UserID && pathElements[3] == elp.ShardID && pathElements[4] == pathElements[5] {
 			// evernote:///view/[userId]/[shardId]/[noteGuid]/[noteGuid]/
-			return &NoteLink{Type: AppLink, URL: linkURL, Text: linkText, NoteGUID: pathElements[4]}
+			return &NoteLink{Type: AppLink, URL: linkURL, Text: linkText, SourceNoteGUID: noteGUID, TargetNoteGUID: pathElements[4]}
 		}
 	}
 
 	if linkURL.Scheme == "https" && linkURL.Hostname() == elp.EvernoteHost {
 		if len(pathElements) == 3 && pathElements[1] == "l" {
 			// https://[evernoteHost]/l/[random string]/
-			return &NoteLink{Type: ShortenedLink, URL: linkURL, Text: linkText}
+			return &NoteLink{Type: ShortenedLink, URL: linkURL, Text: linkText, SourceNoteGUID: noteGUID}
 		} else if len(pathElements) == 6 && pathElements[1] == "shard" && pathElements[2] == elp.ShardID && pathElements[3] == "nl" && pathElements[4] == elp.UserID {
 			// https://[evernoteHost]/shard/[shardId]/nl/[userId]/[noteGuid]/
-			return &NoteLink{Type: WebLink, URL: linkURL, Text: linkText, NoteGUID: pathElements[5]}
+			return &NoteLink{Type: WebLink, URL: linkURL, Text: linkText, SourceNoteGUID: noteGUID, TargetNoteGUID: pathElements[5]}
 		} else if len(pathElements) == 6 && pathElements[1] == "shard" && pathElements[3] == "sh" {
 			// https://[evernoteHost]/shard/[shardId]/sh/[noteGuid]/[shareKey]/
-			return &NoteLink{Type: PublicLink, URL: linkURL, Text: linkText, NoteGUID: pathElements[4]}
+			return &NoteLink{Type: PublicLink, URL: linkURL, Text: linkText, SourceNoteGUID: noteGUID, TargetNoteGUID: pathElements[4]}
 		}
 	}
 

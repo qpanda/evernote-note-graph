@@ -53,57 +53,67 @@ func TestCreatePublicLinkURL(t *testing.T) {
 }
 
 func TestParseNonNoteLink(t *testing.T) {
-	nonNoteLink := noteLinkParser.ParseNoteLink(*CreateURL("https://example.org/"), "example.org")
+	noteGUID := uuid.NewV4().String()
+	nonNoteLink := noteLinkParser.ParseNoteLink(noteGUID, *CreateURL("https://example.org/"), "example.org")
 	assert.Nil(t, nonNoteLink)
 }
 
 func TestParseWebNoteLink(t *testing.T) {
-	noteGUID := uuid.NewV4().String()
-	webLinkURL := CreateWebLinkURL(noteGUID)
+	sourceNoteGUID := uuid.NewV4().String()
+	targetNoteGUID := uuid.NewV4().String()
+	webLinkURL := CreateWebLinkURL(targetNoteGUID)
 	webLinkText := "WebLink"
-	webLink := noteLinkParser.ParseNoteLink(*webLinkURL, webLinkText)
+	webLink := noteLinkParser.ParseNoteLink(sourceNoteGUID, *webLinkURL, webLinkText)
 	assert.Equal(t, WebLink, webLink.Type)
-	assert.Equal(t, noteGUID, webLink.NoteGUID)
+	assert.Equal(t, sourceNoteGUID, webLink.SourceNoteGUID)
+	assert.Equal(t, targetNoteGUID, webLink.TargetNoteGUID)
 	assert.Equal(t, *webLinkURL, webLink.URL)
 	assert.Equal(t, webLinkText, webLink.Text)
 }
 
 func TestParseShortenedNoteLink(t *testing.T) {
+	sourceNoteGUID := uuid.NewV4().String()
 	random := uuid.NewV4().String()
 	shortenedLinkURL := CreateShortenedLinkURL(random)
 	shortenedLinkText := "ShortenedLink"
-	shortenedLink := noteLinkParser.ParseNoteLink(*shortenedLinkURL, shortenedLinkText)
+	shortenedLink := noteLinkParser.ParseNoteLink(sourceNoteGUID, *shortenedLinkURL, shortenedLinkText)
 	assert.Equal(t, ShortenedLink, shortenedLink.Type)
-	assert.Empty(t, shortenedLink.NoteGUID)
+	assert.Equal(t, sourceNoteGUID, shortenedLink.SourceNoteGUID)
+	assert.Empty(t, shortenedLink.TargetNoteGUID)
 	assert.Equal(t, *shortenedLinkURL, shortenedLink.URL)
 	assert.Equal(t, shortenedLinkText, shortenedLink.Text)
 }
 
 func TestParseAppNoteLink(t *testing.T) {
-	noteGUID := uuid.NewV4().String()
-	appLinkURL := CreateAppLinkURL(noteGUID)
+	sourceNoteGUID := uuid.NewV4().String()
+	targetNoteGUID := uuid.NewV4().String()
+	appLinkURL := CreateAppLinkURL(targetNoteGUID)
 	appLinkText := "AppLink"
-	appLink := noteLinkParser.ParseNoteLink(*appLinkURL, appLinkText)
+	appLink := noteLinkParser.ParseNoteLink(sourceNoteGUID, *appLinkURL, appLinkText)
 	assert.Equal(t, AppLink, appLink.Type)
-	assert.Equal(t, noteGUID, appLink.NoteGUID)
+	assert.Equal(t, sourceNoteGUID, appLink.SourceNoteGUID)
+	assert.Equal(t, targetNoteGUID, appLink.TargetNoteGUID)
 	assert.Equal(t, *appLinkURL, appLink.URL)
 	assert.Equal(t, appLinkText, appLink.Text)
 }
 
 func TestParsePublicNoteLink(t *testing.T) {
-	noteGUID := uuid.NewV4().String()
+	sourceNoteGUID := uuid.NewV4().String()
+	targetNoteGUID := uuid.NewV4().String()
 	shareKey := uuid.NewV4().String()
-	appLinkURL := CreatePublicLinkURL(noteGUID, shareKey)
+	appLinkURL := CreatePublicLinkURL(targetNoteGUID, shareKey)
 	appLinkText := "PublicLink"
-	appLink := noteLinkParser.ParseNoteLink(*appLinkURL, appLinkText)
+	appLink := noteLinkParser.ParseNoteLink(sourceNoteGUID, *appLinkURL, appLinkText)
 	assert.Equal(t, PublicLink, appLink.Type)
-	assert.Equal(t, noteGUID, appLink.NoteGUID)
+	assert.Equal(t, sourceNoteGUID, appLink.SourceNoteGUID)
+	assert.Equal(t, targetNoteGUID, appLink.TargetNoteGUID)
 	assert.Equal(t, *appLinkURL, appLink.URL)
 	assert.Equal(t, appLinkText, appLink.Text)
 }
 
 func TestExtractNoteLinks(t *testing.T) {
-	noteLinks, err := noteLinkParser.ExtractNoteLinks(testENML)
+	noteGUID := uuid.NewV4().String()
+	noteLinks, err := noteLinkParser.ExtractNoteLinks(noteGUID, testENML)
 	if err != nil {
 		panic(err)
 	}

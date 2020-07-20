@@ -32,16 +32,17 @@ func (lt LinkType) String() string {
 	return [...]string{"AppLink", "WebLink", "PublicLink", "ShortenedLink"}[lt]
 }
 
-// NoteLink is an app, web, public, or shortened link that points to a Note (see Evernote API documentation at https://dev.evernote.com/doc/articles/note_links.php)
+// NoteLink is an app, web, public, or shortened link that points from source Note to target Note (see Evernote API documentation at https://dev.evernote.com/doc/articles/note_links.php)
 type NoteLink struct {
-	Type     LinkType
-	URL      url.URL
-	Text     string
-	NoteGUID string // is not set for ShortenedLinks
+	Type           LinkType
+	URL            url.URL
+	Text           string
+	SourceNoteGUID string
+	TargetNoteGUID string // not set for ShortenedLinks
 }
 
 func (nl NoteLink) String() string {
-	return fmt.Sprintf("{Type: %s, URL: %s, Text: %s, NoteGUID %s}", nl.Type.String(), nl.URL.String(), nl.Text, nl.NoteGUID)
+	return fmt.Sprintf("{Type: %s, URL: %s, Text: %s, SourceNoteGUID: %s, TargetNoteGUID: %s}", nl.Type.String(), nl.URL.String(), nl.Text, nl.SourceNoteGUID, nl.TargetNoteGUID)
 }
 
 // NoteGraph contains all Notes and NoteLinks and keeps track of which Notes are linked to other Notes
@@ -72,7 +73,7 @@ func (ng *NoteGraph) AddNote(note Note, noteLinks []NoteLink) bool {
 		// if the Note contains NoteLinks we remember the GUID of the Note and the GUIDs of all notes this Note links to
 		ng.LinkedNoteGUIDs[note.GUID] = true
 		for _, noteLink := range noteLinks {
-			ng.LinkedNoteGUIDs[noteLink.NoteGUID] = true
+			ng.LinkedNoteGUIDs[noteLink.TargetNoteGUID] = true
 		}
 
 		return true
