@@ -17,6 +17,11 @@ func (m *MockEvernoteClient) GetHost() string {
 	return args.String(0)
 }
 
+func (m *MockEvernoteClient) GetUser() (*edam.User, error) {
+	args := m.Called()
+	return args.Get(0).(*edam.User), args.Error(1)
+}
+
 func (m *MockEvernoteClient) GetUserStoreURL() string {
 	args := m.Called()
 	return args.String(0)

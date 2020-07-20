@@ -38,6 +38,7 @@ type EvernoteClient struct {
 // IEvernoteClient is an interface that exposes all EvernoteClient functions required to contstruct a NoteGraph
 type IEvernoteClient interface {
 	GetHost() string
+	GetUser() (*edam.User, error)
 	GetUserStoreURL() string
 	FindAllNotesMetadata(offset int32, maxNotes int32) (*edam.NotesMetadataList, error)
 	GetNoteWithContent(guid edam.GUID) (*edam.Note, error)
