@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/antchfx/xmlquery"
+	"github.com/antchfx/xpath"
 	"github.com/freddy33/graphml"
 	"github.com/stretchr/testify/assert"
 )
@@ -26,12 +27,13 @@ func TestCreateNodes(t *testing.T) {
 	assert.Equal(t, note.GUID, nodes[0].ID)
 }
 
-func TestConvertNoteGraph(t *testing.T) {
+func TestConvertNoteGraphLinkedNotes(t *testing.T) {
 	// four Notes, valid NoteLinks, disconnected graph
 	noteA := Note{GUID: "A", Title: "TitleA", Description: "DescriptionA", URL: *CreateWebLinkURL("A"), URLType: WebLink}
 	noteB := Note{GUID: "B", Title: "TitleB", Description: "DescriptionB", URL: *CreateWebLinkURL("B"), URLType: WebLink}
 	noteC := Note{GUID: "C", Title: "TitleC", Description: "DescriptionC", URL: *CreateWebLinkURL("C"), URLType: WebLink}
 	noteD := Note{GUID: "D", Title: "TitleD", Description: "DescriptionD", URL: *CreateWebLinkURL("D"), URLType: WebLink}
+	noteE := Note{GUID: "E", Title: "TitleE", Description: "DescriptionE", URL: *CreateWebLinkURL("E"), URLType: WebLink}
 
 	noteLinkAB := NoteLink{SourceNoteGUID: "A", TargetNoteGUID: "B", URL: *CreateWebLinkURL("B"), URLType: WebLink}
 	noteLinkCD := NoteLink{SourceNoteGUID: "C", TargetNoteGUID: "D", URL: *CreateWebLinkURL("D"), URLType: WebLink}
@@ -41,8 +43,9 @@ func TestConvertNoteGraph(t *testing.T) {
 	noteGraph.Add(noteB, []NoteLink{})
 	noteGraph.Add(noteC, []NoteLink{noteLinkCD})
 	noteGraph.Add(noteD, []NoteLink{})
+	noteGraph.Add(noteE, []NoteLink{})
 
-	graphMLDocument := NewNoteGraphUtil().ConvertNoteGraph(noteGraph)
+	graphMLDocument := NewNoteGraphUtil().ConvertNoteGraph(noteGraph, false)
 	encodedGraphMLDocument := EncodeGraphMLDocument(graphMLDocument)
 	xmlDocument, err := xmlquery.Parse(strings.NewReader(encodedGraphMLDocument))
 	if err != nil {
@@ -53,13 +56,66 @@ func TestConvertNoteGraph(t *testing.T) {
 	assert.Equal(t, NoteGraphID, graph.SelectAttr("id"))
 	assert.Equal(t, string(graphml.EdgeDirected), graph.SelectAttr("edgedefault"))
 
+	AssertNodeCount(t, xmlDocument, 4)
 	AssertNoteEqualNode(t, xmlDocument, noteA.GUID, noteA.Title, noteA.Description, noteA.URL.String())
 	AssertNoteEqualNode(t, xmlDocument, noteB.GUID, noteB.Title, noteB.Description, noteB.URL.String())
 	AssertNoteEqualNode(t, xmlDocument, noteC.GUID, noteC.Title, noteC.Description, noteC.URL.String())
 	AssertNoteEqualNode(t, xmlDocument, noteD.GUID, noteD.Title, noteD.Description, noteD.URL.String())
 
+	AssertEdgeCount(t, xmlDocument, 2)
 	AssertNoteLinkEqualEdge(t, xmlDocument, "1", noteLinkAB.SourceNoteGUID, noteLinkAB.TargetNoteGUID, noteLinkAB.Text, noteLinkAB.Text)
 	AssertNoteLinkEqualEdge(t, xmlDocument, "2", noteLinkCD.SourceNoteGUID, noteLinkCD.TargetNoteGUID, noteLinkCD.Text, noteLinkCD.Text)
+}
+
+func TestConvertNoteGraphAllNotes(t *testing.T) {
+	// four Notes, valid NoteLinks, disconnected graph
+	noteA := Note{GUID: "A", Title: "TitleA", Description: "DescriptionA", URL: *CreateWebLinkURL("A"), URLType: WebLink}
+	noteB := Note{GUID: "B", Title: "TitleB", Description: "DescriptionB", URL: *CreateWebLinkURL("B"), URLType: WebLink}
+	noteC := Note{GUID: "C", Title: "TitleC", Description: "DescriptionC", URL: *CreateWebLinkURL("C"), URLType: WebLink}
+	noteD := Note{GUID: "D", Title: "TitleD", Description: "DescriptionD", URL: *CreateWebLinkURL("D"), URLType: WebLink}
+	noteE := Note{GUID: "E", Title: "TitleE", Description: "DescriptionE", URL: *CreateWebLinkURL("E"), URLType: WebLink}
+
+	noteLinkAB := NoteLink{SourceNoteGUID: "A", TargetNoteGUID: "B", URL: *CreateWebLinkURL("B"), URLType: WebLink}
+	noteLinkCD := NoteLink{SourceNoteGUID: "C", TargetNoteGUID: "D", URL: *CreateWebLinkURL("D"), URLType: WebLink}
+
+	noteGraph := NewNoteGraph()
+	noteGraph.Add(noteA, []NoteLink{noteLinkAB})
+	noteGraph.Add(noteB, []NoteLink{})
+	noteGraph.Add(noteC, []NoteLink{noteLinkCD})
+	noteGraph.Add(noteD, []NoteLink{})
+	noteGraph.Add(noteE, []NoteLink{})
+
+	graphMLDocument := NewNoteGraphUtil().ConvertNoteGraph(noteGraph, true)
+	encodedGraphMLDocument := EncodeGraphMLDocument(graphMLDocument)
+	xmlDocument, err := xmlquery.Parse(strings.NewReader(encodedGraphMLDocument))
+	if err != nil {
+		panic(err)
+	}
+
+	graph := xmlquery.FindOne(xmlDocument, "/graphml/graph")
+	assert.Equal(t, NoteGraphID, graph.SelectAttr("id"))
+	assert.Equal(t, string(graphml.EdgeDirected), graph.SelectAttr("edgedefault"))
+
+	AssertNodeCount(t, xmlDocument, 5)
+	AssertNoteEqualNode(t, xmlDocument, noteA.GUID, noteA.Title, noteA.Description, noteA.URL.String())
+	AssertNoteEqualNode(t, xmlDocument, noteB.GUID, noteB.Title, noteB.Description, noteB.URL.String())
+	AssertNoteEqualNode(t, xmlDocument, noteC.GUID, noteC.Title, noteC.Description, noteC.URL.String())
+	AssertNoteEqualNode(t, xmlDocument, noteD.GUID, noteD.Title, noteD.Description, noteD.URL.String())
+	AssertNoteEqualNode(t, xmlDocument, noteE.GUID, noteE.Title, noteE.Description, noteE.URL.String())
+
+	AssertEdgeCount(t, xmlDocument, 2)
+	AssertNoteLinkEqualEdge(t, xmlDocument, "1", noteLinkAB.SourceNoteGUID, noteLinkAB.TargetNoteGUID, noteLinkAB.Text, noteLinkAB.Text)
+	AssertNoteLinkEqualEdge(t, xmlDocument, "2", noteLinkCD.SourceNoteGUID, noteLinkCD.TargetNoteGUID, noteLinkCD.Text, noteLinkCD.Text)
+}
+
+func AssertNodeCount(t *testing.T, xmlNode *xmlquery.Node, expectedCount int) {
+	expr, err := xpath.Compile("count(//node)")
+	if err != nil {
+		panic(err)
+	}
+
+	actualCount := expr.Evaluate(xmlquery.CreateXPathNavigator(xmlNode)).(float64)
+	assert.Equal(t, expectedCount, int(actualCount))
 }
 
 func AssertNoteEqualNode(t *testing.T, xmlNode *xmlquery.Node, nodeID, nodeLabel, nodeDescription, nodeURL string) {
@@ -67,6 +123,16 @@ func AssertNoteEqualNode(t *testing.T, xmlNode *xmlquery.Node, nodeID, nodeLabel
 	assert.Equal(t, nodeLabel, xmlquery.FindOne(node, "/data[@key='"+NodeLabelID+"']").InnerText())
 	assert.Equal(t, nodeDescription, xmlquery.FindOne(node, "/data[@key='"+NodeDescriptionID+"']").InnerText())
 	assert.Equal(t, nodeURL, xmlquery.FindOne(node, "/data[@key='"+NodeURLID+"']").InnerText())
+}
+
+func AssertEdgeCount(t *testing.T, xmlNode *xmlquery.Node, expectedCount int) {
+	expr, err := xpath.Compile("count(//edge)")
+	if err != nil {
+		panic(err)
+	}
+
+	actualCount := expr.Evaluate(xmlquery.CreateXPathNavigator(xmlNode)).(float64)
+	assert.Equal(t, expectedCount, int(actualCount))
 }
 
 func AssertNoteLinkEqualEdge(t *testing.T, xmlNode *xmlquery.Node, edgeIndex, sourceNodeID, targetNodeID, edgeLabel, edgeDescription string) {

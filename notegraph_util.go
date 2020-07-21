@@ -19,11 +19,29 @@ func NewNoteGraphUtil() *NoteGraphUtil {
 }
 
 // ConvertNoteGraph converts the NoteGraph into a GraphML document
-func (ngu *NoteGraphUtil) ConvertNoteGraph(noteGraph *NoteGraph) *graphml.Document {
-	nodes := ngu.CreateNodes(*noteGraph.GetLinkedNotes())
-	edges := ngu.CreateEdges(*noteGraph.GetValidNoteLinks())
+func (ngu *NoteGraphUtil) ConvertNoteGraph(noteGraph *NoteGraph, allNotes bool) *graphml.Document {
+	notes := ngu.GraphNotes(noteGraph, allNotes)
+	noteLinks := ngu.GraphNoteLinks(noteGraph)
+
+	nodes := ngu.CreateNodes(notes)
+	edges := ngu.CreateEdges(noteLinks)
+
 	graph := ngu.GraphMLUtil.CreateGraph(NoteGraphID, graphml.EdgeDirected, nodes, edges)
 	return ngu.GraphMLUtil.CreateGraphMLDocument([]graphml.Graph{*graph})
+}
+
+// GraphNotes returns all Notes to include in the GraphML graph
+func (ngu *NoteGraphUtil) GraphNotes(noteGraph *NoteGraph, allNotes bool) []Note {
+	if allNotes {
+		return *noteGraph.GetNotes()
+	}
+
+	return *noteGraph.GetLinkedNotes()
+}
+
+// GraphNoteLinks returns all NoteLinks to include in the GraphML graph
+func (ngu *NoteGraphUtil) GraphNoteLinks(noteGraph *NoteGraph) []NoteLink {
+	return *noteGraph.GetValidNoteLinks()
 }
 
 // CreateNodes creates a GraphML node from the Note

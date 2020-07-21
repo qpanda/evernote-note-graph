@@ -82,7 +82,7 @@ func (ng *NoteGraph) GetNoteLinks() *[]NoteLink {
 	return &ng.NoteLinks
 }
 
-// GetLinkedNotes returns source and target Notes of all NoteLinks where both source and target Note exists
+// GetLinkedNotes returns Notes that are connected by at least one NoteLink
 func (ng *NoteGraph) GetLinkedNotes() *[]Note {
 	linkedNotes := map[string]Note{}
 	for _, noteLink := range ng.NoteLinks {

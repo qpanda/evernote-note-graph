@@ -53,7 +53,7 @@ func CreateEvernoteNoteGraph() {
 		panic(noteGraphErr)
 	}
 
-	graphMLDocument := NewNoteGraphUtil().ConvertNoteGraph(noteGraph)
+	graphMLDocument := NewNoteGraphUtil().ConvertNoteGraph(noteGraph, false)
 	saveGraphMLErr := NewGraphMLUtil().SaveGraphMLDocument("noteGraph.graphml", graphMLDocument)
 	if saveGraphMLErr != nil {
 		panic(saveGraphMLErr)
