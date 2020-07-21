@@ -81,7 +81,7 @@ func (eng *EvernoteNoteGraph) CreateNote(noteMetadata *edam.NoteMetadata) (*Note
 		return nil, err
 	}
 
-	return &Note{GUID: noteGUID, Title: noteTitle, Description: noteTitle, URL: *noteURL}, nil
+	return &Note{GUID: noteGUID, Title: noteTitle, Description: noteTitle, URL: *noteURL, URLType: WebLink}, nil
 }
 
 // FetchContentAndExtractNoteLinks extracts NoteLinks for the NoteGraph from the Evernote note metadata and content
@@ -111,7 +111,7 @@ func (eng *EvernoteNoteGraph) SelectNoteLinks(note *Note, noteLinks []NoteLink) 
 	// NoteLinks of type ShortenedLink and PublicLink may point to Notes that are not stored in the users Evernote account, including these types
 	// of NotesLinks would require generating Notes with a special type to be included in the NoteGraph
 	for _, noteLink := range noteLinks {
-		if noteLink.Type == AppLink || noteLink.Type == WebLink {
+		if noteLink.URLType == AppLink || noteLink.URLType == WebLink {
 			selectedNoteLinks = append(selectedNoteLinks, noteLink)
 		}
 	}

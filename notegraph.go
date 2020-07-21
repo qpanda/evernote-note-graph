@@ -5,44 +5,45 @@ import (
 	"net/url"
 )
 
+// Enum of all URLTypes (see Evernote API documentation at https://dev.evernote.com/doc/articles/note_links.php)
+const (
+	AppLink       URLType = iota // 'In-App Note Link'
+	WebLink       URLType = iota // 'Note Link'
+	PublicLink    URLType = iota // 'Public Link'
+	ShortenedLink URLType = iota // 'Evernote Shortened URLs'
+)
+
+// URLType identifies the type of URL in a Note or NoteLink
+type URLType int
+
+func (ut URLType) String() string {
+	return [...]string{"AppLink", "WebLink", "PublicLink", "ShortenedLink"}[ut]
+}
+
 // Note represents an Evernote note
 type Note struct {
 	GUID        string
 	Title       string
 	Description string
 	URL         url.URL
+	URLType     URLType
 }
 
 func (n Note) String() string {
-	return fmt.Sprintf("{GUID: %s, Title: %s, Description: %s, URL %s}", n.GUID, n.Title, n.Description, n.URL.String())
-}
-
-// LinkType identifies the type of a NoteLink
-type LinkType int
-
-// Enum of all LinkTypes (see Evernote API documentation at https://dev.evernote.com/doc/articles/note_links.php)
-const (
-	AppLink       LinkType = iota // 'In-App Note Link'
-	WebLink       LinkType = iota // 'Note Link'
-	PublicLink    LinkType = iota // 'Public Link'
-	ShortenedLink LinkType = iota // 'Evernote Shortened URLs'
-)
-
-func (lt LinkType) String() string {
-	return [...]string{"AppLink", "WebLink", "PublicLink", "ShortenedLink"}[lt]
+	return fmt.Sprintf("{GUID: %s, Title: %s, Description: %s, URL %s, URLType %s}", n.GUID, n.Title, n.Description, n.URL.String(), n.URLType.String())
 }
 
 // NoteLink is an app, web, public, or shortened link that points from source Note to target Note (see Evernote API documentation at https://dev.evernote.com/doc/articles/note_links.php)
 type NoteLink struct {
-	Type           LinkType
-	URL            url.URL
-	Text           string
 	SourceNoteGUID string
 	TargetNoteGUID string // not set for ShortenedLinks
+	Text           string
+	URL            url.URL
+	URLType        URLType
 }
 
 func (nl NoteLink) String() string {
-	return fmt.Sprintf("{Type: %s, URL: %s, Text: %s, SourceNoteGUID: %s, TargetNoteGUID: %s}", nl.Type.String(), nl.URL.String(), nl.Text, nl.SourceNoteGUID, nl.TargetNoteGUID)
+	return fmt.Sprintf("{SourceNoteGUID: %s, TargetNoteGUID: %s, Text: %s, URL: %s, URLType: %s}", nl.SourceNoteGUID, nl.TargetNoteGUID, nl.Text, nl.URL.String(), nl.URLType.String())
 }
 
 // NoteGraph contains all Notes and NoteLinks and keeps track of which Notes are linked to other Notes

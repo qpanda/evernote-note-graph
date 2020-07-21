@@ -64,7 +64,7 @@ func TestParseWebNoteLink(t *testing.T) {
 	webLinkURL := CreateWebLinkURL(targetNoteGUID)
 	webLinkText := "WebLink"
 	webLink := noteLinkParser.ParseNoteLink(sourceNoteGUID, *webLinkURL, webLinkText)
-	assert.Equal(t, WebLink, webLink.Type)
+	assert.Equal(t, WebLink, webLink.URLType)
 	assert.Equal(t, sourceNoteGUID, webLink.SourceNoteGUID)
 	assert.Equal(t, targetNoteGUID, webLink.TargetNoteGUID)
 	assert.Equal(t, *webLinkURL, webLink.URL)
@@ -77,7 +77,7 @@ func TestParseShortenedNoteLink(t *testing.T) {
 	shortenedLinkURL := CreateShortenedLinkURL(random)
 	shortenedLinkText := "ShortenedLink"
 	shortenedLink := noteLinkParser.ParseNoteLink(sourceNoteGUID, *shortenedLinkURL, shortenedLinkText)
-	assert.Equal(t, ShortenedLink, shortenedLink.Type)
+	assert.Equal(t, ShortenedLink, shortenedLink.URLType)
 	assert.Equal(t, sourceNoteGUID, shortenedLink.SourceNoteGUID)
 	assert.Empty(t, shortenedLink.TargetNoteGUID)
 	assert.Equal(t, *shortenedLinkURL, shortenedLink.URL)
@@ -90,7 +90,7 @@ func TestParseAppNoteLink(t *testing.T) {
 	appLinkURL := CreateAppLinkURL(targetNoteGUID)
 	appLinkText := "AppLink"
 	appLink := noteLinkParser.ParseNoteLink(sourceNoteGUID, *appLinkURL, appLinkText)
-	assert.Equal(t, AppLink, appLink.Type)
+	assert.Equal(t, AppLink, appLink.URLType)
 	assert.Equal(t, sourceNoteGUID, appLink.SourceNoteGUID)
 	assert.Equal(t, targetNoteGUID, appLink.TargetNoteGUID)
 	assert.Equal(t, *appLinkURL, appLink.URL)
@@ -104,7 +104,7 @@ func TestParsePublicNoteLink(t *testing.T) {
 	appLinkURL := CreatePublicLinkURL(targetNoteGUID, shareKey)
 	appLinkText := "PublicLink"
 	appLink := noteLinkParser.ParseNoteLink(sourceNoteGUID, *appLinkURL, appLinkText)
-	assert.Equal(t, PublicLink, appLink.Type)
+	assert.Equal(t, PublicLink, appLink.URLType)
 	assert.Equal(t, sourceNoteGUID, appLink.SourceNoteGUID)
 	assert.Equal(t, targetNoteGUID, appLink.TargetNoteGUID)
 	assert.Equal(t, *appLinkURL, appLink.URL)

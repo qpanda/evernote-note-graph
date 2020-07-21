@@ -20,7 +20,7 @@ func TestCreateEdges(t *testing.T) {
 
 func TestCreateNodes(t *testing.T) {
 	webLinkURL := CreateWebLinkURL("GUID")
-	note := Note{GUID: "GUID", Title: "Title", Description: "Title", URL: *webLinkURL}
+	note := Note{GUID: "GUID", Title: "Title", Description: "Title", URL: *webLinkURL, URLType: WebLink}
 	nodes := NewNoteGraphUtil().CreateNodes([]Note{note})
 
 	assert.Equal(t, note.GUID, nodes[0].ID)
@@ -28,13 +28,13 @@ func TestCreateNodes(t *testing.T) {
 
 func TestConvertNoteGraph(t *testing.T) {
 	// four Notes, valid NoteLinks, disconnected graph
-	noteA := Note{GUID: "A", Title: "TitleA", Description: "DescriptionA", URL: *CreateWebLinkURL("A")}
-	noteB := Note{GUID: "B", Title: "TitleB", Description: "DescriptionB", URL: *CreateWebLinkURL("B")}
-	noteC := Note{GUID: "C", Title: "TitleC", Description: "DescriptionC", URL: *CreateWebLinkURL("C")}
-	noteD := Note{GUID: "D", Title: "TitleD", Description: "DescriptionD", URL: *CreateWebLinkURL("D")}
+	noteA := Note{GUID: "A", Title: "TitleA", Description: "DescriptionA", URL: *CreateWebLinkURL("A"), URLType: WebLink}
+	noteB := Note{GUID: "B", Title: "TitleB", Description: "DescriptionB", URL: *CreateWebLinkURL("B"), URLType: WebLink}
+	noteC := Note{GUID: "C", Title: "TitleC", Description: "DescriptionC", URL: *CreateWebLinkURL("C"), URLType: WebLink}
+	noteD := Note{GUID: "D", Title: "TitleD", Description: "DescriptionD", URL: *CreateWebLinkURL("D"), URLType: WebLink}
 
-	noteLinkAB := NoteLink{SourceNoteGUID: "A", TargetNoteGUID: "B", Type: WebLink, URL: *CreateWebLinkURL("B")}
-	noteLinkCD := NoteLink{SourceNoteGUID: "C", TargetNoteGUID: "D", Type: WebLink, URL: *CreateWebLinkURL("D")}
+	noteLinkAB := NoteLink{SourceNoteGUID: "A", TargetNoteGUID: "B", URL: *CreateWebLinkURL("B"), URLType: WebLink}
+	noteLinkCD := NoteLink{SourceNoteGUID: "C", TargetNoteGUID: "D", URL: *CreateWebLinkURL("D"), URLType: WebLink}
 
 	noteGraph := NewNoteGraph()
 	noteGraph.Add(noteA, []NoteLink{noteLinkAB})

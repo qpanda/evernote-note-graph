@@ -58,20 +58,20 @@ func (elp *NoteLinkParser) ParseNoteLink(noteGUID string, linkURL url.URL, linkT
 	if linkURL.Scheme == "evernote" {
 		if len(pathElements) == 6 && pathElements[1] == "view" && pathElements[2] == elp.UserID && pathElements[3] == elp.ShardID && pathElements[4] == pathElements[5] {
 			// evernote:///view/[userId]/[shardId]/[noteGuid]/[noteGuid]/
-			return &NoteLink{Type: AppLink, URL: linkURL, Text: linkText, SourceNoteGUID: noteGUID, TargetNoteGUID: pathElements[4]}
+			return &NoteLink{SourceNoteGUID: noteGUID, TargetNoteGUID: pathElements[4], Text: linkText, URL: linkURL, URLType: AppLink}
 		}
 	}
 
 	if linkURL.Scheme == "https" && linkURL.Hostname() == elp.EvernoteHost {
 		if len(pathElements) == 3 && pathElements[1] == "l" {
 			// https://[evernoteHost]/l/[random string]/
-			return &NoteLink{Type: ShortenedLink, URL: linkURL, Text: linkText, SourceNoteGUID: noteGUID}
+			return &NoteLink{SourceNoteGUID: noteGUID, Text: linkText, URL: linkURL, URLType: ShortenedLink}
 		} else if len(pathElements) == 6 && pathElements[1] == "shard" && pathElements[2] == elp.ShardID && pathElements[3] == "nl" && pathElements[4] == elp.UserID {
 			// https://[evernoteHost]/shard/[shardId]/nl/[userId]/[noteGuid]/
-			return &NoteLink{Type: WebLink, URL: linkURL, Text: linkText, SourceNoteGUID: noteGUID, TargetNoteGUID: pathElements[5]}
+			return &NoteLink{SourceNoteGUID: noteGUID, TargetNoteGUID: pathElements[5], Text: linkText, URL: linkURL, URLType: WebLink}
 		} else if len(pathElements) == 6 && pathElements[1] == "shard" && pathElements[3] == "sh" {
 			// https://[evernoteHost]/shard/[shardId]/sh/[noteGuid]/[shareKey]/
-			return &NoteLink{Type: PublicLink, URL: linkURL, Text: linkText, SourceNoteGUID: noteGUID, TargetNoteGUID: pathElements[4]}
+			return &NoteLink{SourceNoteGUID: noteGUID, TargetNoteGUID: pathElements[4], Text: linkText, URL: linkURL, URLType: PublicLink}
 		}
 	}
 

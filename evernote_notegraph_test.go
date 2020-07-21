@@ -41,10 +41,10 @@ func TestSelectNoteLinks(t *testing.T) {
 	evernoteNoteGraph := NewEvernoteNoteGraph(nil, nil)
 
 	note := &Note{GUID: "1"}
-	noteLinks := []NoteLink{{SourceNoteGUID: note.GUID, TargetNoteGUID: "1", Type: AppLink}, {SourceNoteGUID: note.GUID, TargetNoteGUID: "2", Type: WebLink}, {SourceNoteGUID: note.GUID, TargetNoteGUID: "3", Type: PublicLink}, {SourceNoteGUID: note.GUID, TargetNoteGUID: "4", Type: ShortenedLink}}
+	noteLinks := []NoteLink{{SourceNoteGUID: note.GUID, TargetNoteGUID: "1", URLType: AppLink}, {SourceNoteGUID: note.GUID, TargetNoteGUID: "2", URLType: WebLink}, {SourceNoteGUID: note.GUID, TargetNoteGUID: "3", URLType: PublicLink}, {SourceNoteGUID: note.GUID, TargetNoteGUID: "4", URLType: ShortenedLink}}
 	selectedNoteLinks := evernoteNoteGraph.SelectNoteLinks(note, noteLinks)
 
-	assert.ElementsMatch(t, selectedNoteLinks, []NoteLink{{SourceNoteGUID: note.GUID, TargetNoteGUID: "1", Type: AppLink}, {SourceNoteGUID: note.GUID, TargetNoteGUID: "2", Type: WebLink}})
+	assert.ElementsMatch(t, selectedNoteLinks, []NoteLink{{SourceNoteGUID: note.GUID, TargetNoteGUID: "1", URLType: AppLink}, {SourceNoteGUID: note.GUID, TargetNoteGUID: "2", URLType: WebLink}})
 }
 
 func TestCreateNote(t *testing.T) {
@@ -64,7 +64,7 @@ func TestCreateNote(t *testing.T) {
 		panic(err)
 	}
 
-	expectedNote := &Note{GUID: evernoteNoteGUID, Title: evernoteNoteTitle, Description: evernoteNoteTitle, URL: *url}
+	expectedNote := &Note{GUID: evernoteNoteGUID, Title: evernoteNoteTitle, Description: evernoteNoteTitle, URL: *url, URLType: WebLink}
 	assert.Equal(t, expectedNote, createdNote)
 }
 
