@@ -42,7 +42,7 @@ func InitNoteLinkParser(evernoteClient IEvernoteClient) *NoteLinkParser {
 func InitEvernoteNoteGraph() *EvernoteNoteGraph {
 	evernoteClient := InitEvernoteClient()
 	noteLinkParser := InitNoteLinkParser(evernoteClient)
-	return NewEvernoteNoteGraph(evernoteClient, noteLinkParser)
+	return NewEvernoteNoteGraph(evernoteClient, noteLinkParser, WebLink)
 }
 
 // CreateEvernoteNoteGraph creates and saves the NoteGraph as a GraphML document

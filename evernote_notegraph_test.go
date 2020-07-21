@@ -38,7 +38,7 @@ func (m *MockEvernoteClient) GetNoteWithContent(guid edam.GUID) (*edam.Note, err
 }
 
 func TestSelectNoteLinks(t *testing.T) {
-	evernoteNoteGraph := NewEvernoteNoteGraph(nil, nil)
+	evernoteNoteGraph := NewEvernoteNoteGraph(nil, nil, WebLink)
 
 	note := &Note{GUID: "1"}
 	noteLinks := []NoteLink{{SourceNoteGUID: note.GUID, TargetNoteGUID: "1", URLType: AppLink}, {SourceNoteGUID: note.GUID, TargetNoteGUID: "2", URLType: WebLink}, {SourceNoteGUID: note.GUID, TargetNoteGUID: "3", URLType: PublicLink}, {SourceNoteGUID: note.GUID, TargetNoteGUID: "4", URLType: ShortenedLink}}
@@ -49,7 +49,7 @@ func TestSelectNoteLinks(t *testing.T) {
 
 func TestCreateNote(t *testing.T) {
 	noteLinkParser := NewNoteLinkParser(SandboxEvernoteCom, "userId", "shardId")
-	evernoteNoteGraph := NewEvernoteNoteGraph(nil, noteLinkParser)
+	evernoteNoteGraph := NewEvernoteNoteGraph(nil, noteLinkParser, WebLink)
 
 	evernoteNoteGUID := "1"
 	evernoteNoteTitle := "Test"
@@ -68,10 +68,32 @@ func TestCreateNote(t *testing.T) {
 	assert.Equal(t, expectedNote, createdNote)
 }
 
+func TestCreateNoteURL(t *testing.T) {
+	noteLinkParser := NewNoteLinkParser(SandboxEvernoteCom, "userId", "shardId")
+
+	webLinkEvernoteNoteGraph := NewEvernoteNoteGraph(nil, noteLinkParser, WebLink)
+	_, webLinkURLType, webLinkErr := webLinkEvernoteNoteGraph.CreateNoteURL("1")
+	if webLinkErr != nil {
+		panic(webLinkErr)
+	}
+	assert.Equal(t, WebLink, *webLinkURLType)
+
+	appLinkEvernoteNoteGraph := NewEvernoteNoteGraph(nil, noteLinkParser, AppLink)
+	_, appLinkURLType, appLinkErr := appLinkEvernoteNoteGraph.CreateNoteURL("1")
+	if appLinkErr != nil {
+		panic(webLinkErr)
+	}
+	assert.Equal(t, AppLink, *appLinkURLType)
+
+	invalidLinkEvernoteNoteGraph := NewEvernoteNoteGraph(nil, noteLinkParser, PublicLink)
+	_, _, invalidLinkErr := invalidLinkEvernoteNoteGraph.CreateNoteURL("1")
+	assert.NotNil(t, invalidLinkErr)
+}
+
 func TestFetchContentAndExtractNoteLinksWithoutNoteLinks(t *testing.T) {
 	mockEvernoteClient := new(MockEvernoteClient)
 	noteLinkParser := NewNoteLinkParser(SandboxEvernoteCom, "userId", "shardId")
-	evernoteNoteGraph := NewEvernoteNoteGraph(mockEvernoteClient, noteLinkParser)
+	evernoteNoteGraph := NewEvernoteNoteGraph(mockEvernoteClient, noteLinkParser, WebLink)
 
 	evernoteNoteGUID := edam.GUID("1")
 	evernoteNoteTitle := "Test"
@@ -90,7 +112,7 @@ func TestFetchContentAndExtractNoteLinksWithoutNoteLinks(t *testing.T) {
 func TestFetchContentAndExtractNoteLinksWithLinks(t *testing.T) {
 	mockEvernoteClient := new(MockEvernoteClient)
 	noteLinkParser := NewNoteLinkParser(EvernoteCom, "76136038", "s12")
-	evernoteNoteGraph := NewEvernoteNoteGraph(mockEvernoteClient, noteLinkParser)
+	evernoteNoteGraph := NewEvernoteNoteGraph(mockEvernoteClient, noteLinkParser, WebLink)
 
 	evernoteNoteGUID := edam.GUID("1")
 	evernoteNoteTitle := "Test"
@@ -109,7 +131,7 @@ func TestFetchContentAndExtractNoteLinksWithLinks(t *testing.T) {
 func TestCreateNoteGraphWithNoNotes(t *testing.T) {
 	mockEvernoteClient := new(MockEvernoteClient)
 	noteLinkParser := NewNoteLinkParser(SandboxEvernoteCom, "userId", "shardId")
-	evernoteNoteGraph := NewEvernoteNoteGraph(mockEvernoteClient, noteLinkParser)
+	evernoteNoteGraph := NewEvernoteNoteGraph(mockEvernoteClient, noteLinkParser, WebLink)
 
 	mockEvernoteClient.On("FindAllNotesMetadata", int32(0), mock.Anything).Return(&edam.NotesMetadataList{}, nil)
 
@@ -125,7 +147,7 @@ func TestCreateNoteGraphWithNoNotes(t *testing.T) {
 func TestCreateNoteGraphWithNotes(t *testing.T) {
 	mockEvernoteClient := new(MockEvernoteClient)
 	noteLinkParser := NewNoteLinkParser(EvernoteCom, "76136038", "s12")
-	evernoteNoteGraph := NewEvernoteNoteGraph(mockEvernoteClient, noteLinkParser)
+	evernoteNoteGraph := NewEvernoteNoteGraph(mockEvernoteClient, noteLinkParser, WebLink)
 
 	offset := int32(0)
 	evernoteNoteGUID := edam.GUID("1")

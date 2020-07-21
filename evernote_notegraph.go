@@ -1,6 +1,9 @@
 package main
 
 import (
+	"errors"
+	"net/url"
+
 	"github.com/dreampuf/evernote-sdk-golang/edam"
 	"github.com/sirupsen/logrus"
 )
@@ -12,14 +15,16 @@ const PageSize = 100
 type EvernoteNoteGraph struct {
 	EvernoteClient IEvernoteClient
 	NoteLinkParser *NoteLinkParser
+	NoteURLType    URLType
 	GraphMLUtil    *GraphMLUtil
 }
 
 // NewEvernoteNoteGraph creates a new instance of EvernoteNoteGraph
-func NewEvernoteNoteGraph(evernoteClient IEvernoteClient, noteLinkParser *NoteLinkParser) *EvernoteNoteGraph {
+func NewEvernoteNoteGraph(evernoteClient IEvernoteClient, noteLinkParser *NoteLinkParser, noteURLType URLType) *EvernoteNoteGraph {
 	return &EvernoteNoteGraph{
 		EvernoteClient: evernoteClient,
 		NoteLinkParser: noteLinkParser,
+		NoteURLType:    noteURLType,
 		GraphMLUtil:    &GraphMLUtil{}}
 }
 
@@ -76,12 +81,32 @@ func (eng *EvernoteNoteGraph) CreateNote(noteMetadata *edam.NoteMetadata) (*Note
 
 	noteGUID := string(noteMetadata.GetGUID())
 	noteTitle := noteMetadata.GetTitle()
-	noteURL, err := eng.NoteLinkParser.CreateWebLinkURL(noteGUID)
+	noteURL, noteURLType, err := eng.CreateNoteURL(noteGUID)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Note{GUID: noteGUID, Title: noteTitle, Description: noteTitle, URL: *noteURL, URLType: WebLink}, nil
+	return &Note{GUID: noteGUID, Title: noteTitle, Description: noteTitle, URL: *noteURL, URLType: *noteURLType}, nil
+}
+
+func (eng *EvernoteNoteGraph) CreateNoteURL(noteGUID string) (*url.URL, *URLType, error) {
+	if eng.NoteURLType == WebLink {
+		noteURL, err := eng.NoteLinkParser.CreateWebLinkURL(noteGUID)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		return noteURL, &eng.NoteURLType, nil
+	} else if eng.NoteURLType == AppLink {
+		noteURL, err := eng.NoteLinkParser.CreateAppLinkURL(noteGUID)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		return noteURL, &eng.NoteURLType, nil
+	}
+
+	return nil, nil, errors.New("Invalid NoteURLType [" + eng.NoteURLType.String() + "], unable to create Note URL")
 }
 
 // FetchContentAndExtractNoteLinks extracts NoteLinks for the NoteGraph from the Evernote note metadata and content
@@ -107,9 +132,10 @@ func (eng *EvernoteNoteGraph) FetchContentAndExtractNoteLinks(noteMetadata *edam
 func (eng *EvernoteNoteGraph) SelectNoteLinks(note *Note, noteLinks []NoteLink) []NoteLink {
 	selectedNoteLinks := []NoteLink{}
 
-	// for now - to keep things simple - we only include NoteLinks of type AppLink and WebLink
-	// NoteLinks of type ShortenedLink and PublicLink may point to Notes that are not stored in the users Evernote account, including these types
-	// of NotesLinks would require generating Notes with a special type to be included in the NoteGraph
+	// for now - to keep things simple - we only include NoteLinks with URLs of type AppLink and WebLink
+	// URLs of type ShortenedLink and PublicLink may point to Notes that are not stored in the users Evernote account, including these types
+	// of URLs would require generating Notes with a the respective URLs to be included in the NoteGraph but we don't have a title or description
+	// and potentially no GUID for those Notes
 	for _, noteLink := range noteLinks {
 		if noteLink.URLType == AppLink || noteLink.URLType == WebLink {
 			selectedNoteLinks = append(selectedNoteLinks, noteLink)
