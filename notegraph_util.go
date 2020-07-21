@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/freddy33/graphml"
 	uuid "github.com/satori/go.uuid"
 )
@@ -16,6 +18,29 @@ const NoteGraphID = "NoteGraph"
 // NewNoteGraphUtil creates a new instance of NoteGraphUtil
 func NewNoteGraphUtil() *NoteGraphUtil {
 	return &NoteGraphUtil{GraphMLUtil{}}
+}
+
+// PrintNoteGraphStats prints NoteGraph stats to stdout
+func (ngu *NoteGraphUtil) PrintNoteGraphStats(noteGraph *NoteGraph) {
+	fmt.Printf("NoteGraph Stats\n")
+	fmt.Printf("   Notes: %d\n", len(*noteGraph.GetNotes()))
+	fmt.Printf("   Linked Notes: %d\n", len(*noteGraph.GetLinkedNotes()))
+	fmt.Printf("   Note Links: %d\n", len(*noteGraph.GetNoteLinks()))
+	fmt.Printf("   Valid Note Links: %d\n", len(*noteGraph.GetValidNoteLinks()))
+	fmt.Printf("   Broken Note Links: %d\n", len(*noteGraph.GetBrokenNoteLinks()))
+}
+
+// PrintBrokenNoteLinks prints all broken NoteLinks
+func (ngu *NoteGraphUtil) PrintBrokenNoteLinks(noteGraph *NoteGraph) {
+	brokenNoteLinks := *noteGraph.GetBrokenNoteLinks()
+	if len(brokenNoteLinks) > 0 {
+		fmt.Printf("Broken Note Links\n")
+		for _, noteLink := range brokenNoteLinks {
+			sourceNote := noteGraph.GetNote(noteLink.SourceNoteGUID)
+			targetNote := noteGraph.GetNote(noteLink.SourceNoteGUID)
+			fmt.Printf("   NoteLink [%v] from source Note [%v] to target Note [%v]\n", brokenNoteLinks, sourceNote, targetNote)
+		}
+	}
 }
 
 // ConvertNoteGraph converts the NoteGraph into a GraphML document

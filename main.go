@@ -58,6 +58,9 @@ func CreateEvernoteNoteGraph() {
 	if saveGraphMLErr != nil {
 		panic(saveGraphMLErr)
 	}
+
+	NewNoteGraphUtil().PrintNoteGraphStats(noteGraph)
+	NewNoteGraphUtil().PrintBrokenNoteLinks(noteGraph)
 }
 
 func main() {

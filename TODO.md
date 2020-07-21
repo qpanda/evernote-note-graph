@@ -1,7 +1,5 @@
 # Features
 * Introduce command line arguments to control graph generation
-* Output NoteGraph statistics (number of Notes, valid and broken NoteLinks)
-* Output borken links
 
 # Improvements
 * Review usage of pass-by-value vs pass-by-reference across the codebase for efficiency purpose

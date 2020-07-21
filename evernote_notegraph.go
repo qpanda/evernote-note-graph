@@ -89,6 +89,7 @@ func (eng *EvernoteNoteGraph) CreateNote(noteMetadata *edam.NoteMetadata) (*Note
 	return &Note{GUID: noteGUID, Title: noteTitle, Description: noteTitle, URL: *noteURL, URLType: *noteURLType}, nil
 }
 
+// CreateNoteURL creates the URL for the Note with EvernoteNoteGraph.NoteURLType
 func (eng *EvernoteNoteGraph) CreateNoteURL(noteGUID string) (*url.URL, *URLType, error) {
 	if eng.NoteURLType == WebLink {
 		noteURL, err := eng.NoteLinkParser.CreateWebLinkURL(noteGUID)

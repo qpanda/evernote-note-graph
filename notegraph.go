@@ -67,6 +67,16 @@ func (ng *NoteGraph) Add(note Note, noteLinks []NoteLink) bool {
 	return len(noteLinks) != 0
 }
 
+// GetNote returns the Note with the specified noteGUID if it exists, otherwise nil
+func (ng *NoteGraph) GetNote(noteGUID string) *Note {
+	note, found := ng.Notes[noteGUID]
+	if found {
+		return &note
+	}
+
+	return nil
+}
+
 // GetNotes returns all Notes added to the NoteGraph
 func (ng *NoteGraph) GetNotes() *[]Note {
 	notes := []Note{}
