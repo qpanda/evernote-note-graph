@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/freddy33/graphml"
+	"github.com/sirupsen/logrus"
 )
 
 // NodeLabelID is the ID of the GraphML attribute used for the label of nodes in the graph
@@ -47,6 +48,8 @@ func NewGraphMLUtil() *GraphMLUtil {
 
 // SaveGraphMLDocument saves the provided graphMLDocument with the specified filename on the file system
 func (gu *GraphMLUtil) SaveGraphMLDocument(filename string, graphMLDocument *graphml.Document) error {
+	logrus.Infof("Saving GraphML to file [%s]", filename)
+
 	file, fileErr := os.Create(filename)
 	defer file.Close()
 	if fileErr != nil {

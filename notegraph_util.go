@@ -5,6 +5,7 @@ import (
 
 	"github.com/freddy33/graphml"
 	uuid "github.com/satori/go.uuid"
+	"github.com/sirupsen/logrus"
 )
 
 // NoteGraphUtil converts a NoteGraph to GraphML and saves the the GraphML document to a file
@@ -45,6 +46,8 @@ func (ngu *NoteGraphUtil) PrintBrokenNoteLinks(noteGraph *NoteGraph) {
 
 // ConvertNoteGraph converts the NoteGraph into a GraphML document
 func (ngu *NoteGraphUtil) ConvertNoteGraph(noteGraph *NoteGraph, allNotes bool) *graphml.Document {
+	logrus.Infof("Converting NoteGraph to GraphML")
+
 	notes := ngu.GraphNotes(noteGraph, allNotes)
 	noteLinks := ngu.GraphNoteLinks(noteGraph)
 

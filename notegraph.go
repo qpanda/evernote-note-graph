@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 )
@@ -18,6 +19,25 @@ type URLType int
 
 func (ut URLType) String() string {
 	return [...]string{"AppLink", "WebLink", "PublicLink", "ShortenedLink"}[ut]
+}
+
+// NewURLType create a URLType instance from the string
+func NewURLType(value string) (*URLType, error) {
+	if value == AppLink.String() {
+		urlType := AppLink
+		return &urlType, nil
+	} else if value == WebLink.String() {
+		urlType := WebLink
+		return &urlType, nil
+	} else if value == PublicLink.String() {
+		urlType := PublicLink
+		return &urlType, nil
+	} else if value == ShortenedLink.String() {
+		urlType := ShortenedLink
+		return &urlType, nil
+	}
+
+	return nil, errors.New("Invalid URLType [" + value + "]")
 }
 
 // Note represents an Evernote note

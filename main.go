@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 
@@ -16,13 +17,32 @@ func InitLogger() {
 	logrus.SetLevel(logrus.DebugLevel)
 }
 
-// InitEvernoteClient initializes the EvernoteClient
-func InitEvernoteClient() IEvernoteClient {
-	if os.Getenv("EDAM_AUTHTOKEN") == "" {
-		panic("EDAM_AUTHTOKEN env variable is not set")
+// ParseArgs parses command line arguments
+func ParseArgs() (string, bool, URLType, bool, string) {
+	edamAuthToken := flag.String("edamAuthToken", "", "Evernote API auth token")
+	sandbox := flag.Bool("sandbox", false, "Use sandbox.evernote.com")
+	noteURL := flag.String("noteURL", "WebLink", "WebLink or AppLink for Note URLs")
+	linkedNotes := flag.Bool("linkedNotes", true, "Include only linked Notes")
+	graphMLFilename := flag.String("graphMLFilename", "noteGraph.graphml", "GraphML output filename")
+	flag.Parse()
+
+	if *edamAuthToken == "" {
+		flag.Usage()
+		os.Exit(2)
 	}
 
-	return NewEvernoteClient(os.Getenv("EDAM_AUTHTOKEN"), true)
+	urlType, err := NewURLType(*noteURL)
+	if err != nil || (*urlType != WebLink && *urlType != AppLink) {
+		flag.Usage()
+		os.Exit(2)
+	}
+
+	return *edamAuthToken, *sandbox, *urlType, *linkedNotes, *graphMLFilename
+}
+
+// InitEvernoteClient initializes the EvernoteClient
+func InitEvernoteClient(edamAuthToken string) IEvernoteClient {
+	return NewEvernoteClient(edamAuthToken, true)
 }
 
 // InitNoteLinkParser initializes the NoteLinkParser
@@ -39,22 +59,22 @@ func InitNoteLinkParser(evernoteClient IEvernoteClient) *NoteLinkParser {
 }
 
 // InitEvernoteNoteGraph initializes the EvernoteNoteGraph
-func InitEvernoteNoteGraph() *EvernoteNoteGraph {
-	evernoteClient := InitEvernoteClient()
+func InitEvernoteNoteGraph(edamAuthToken string, noteURLType URLType) *EvernoteNoteGraph {
+	evernoteClient := InitEvernoteClient(edamAuthToken)
 	noteLinkParser := InitNoteLinkParser(evernoteClient)
-	return NewEvernoteNoteGraph(evernoteClient, noteLinkParser, WebLink)
+	return NewEvernoteNoteGraph(evernoteClient, noteLinkParser, noteURLType)
 }
 
 // CreateEvernoteNoteGraph creates and saves the NoteGraph as a GraphML document
-func CreateEvernoteNoteGraph() {
-	evernoteNoteGraph := InitEvernoteNoteGraph()
+func CreateEvernoteNoteGraph(edamAuthToken string, sandbox bool, noteURLType URLType, linkedNotes bool, graphMLFilename string) {
+	evernoteNoteGraph := InitEvernoteNoteGraph(edamAuthToken, noteURLType)
 	noteGraph, noteGraphErr := evernoteNoteGraph.CreateNoteGraph()
 	if noteGraphErr != nil {
 		panic(noteGraphErr)
 	}
 
-	graphMLDocument := NewNoteGraphUtil().ConvertNoteGraph(noteGraph, false)
-	saveGraphMLErr := NewGraphMLUtil().SaveGraphMLDocument("noteGraph.graphml", graphMLDocument)
+	graphMLDocument := NewNoteGraphUtil().ConvertNoteGraph(noteGraph, !linkedNotes)
+	saveGraphMLErr := NewGraphMLUtil().SaveGraphMLDocument(graphMLFilename, graphMLDocument)
 	if saveGraphMLErr != nil {
 		panic(saveGraphMLErr)
 	}
@@ -65,5 +85,5 @@ func CreateEvernoteNoteGraph() {
 
 func main() {
 	InitLogger()
-	CreateEvernoteNoteGraph()
+	CreateEvernoteNoteGraph(ParseArgs())
 }

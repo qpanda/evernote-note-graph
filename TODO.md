@@ -1,5 +1,7 @@
 # Features
-* Introduce command line arguments to control graph generation
+* Configure logger to print only message or reconsider approach to message printing
+* Introduce verbose command line flag to control log level
+* Write unit test for NewURLType
 
 # Improvements
 * Review usage of pass-by-value vs pass-by-reference across the codebase for efficiency purpose
