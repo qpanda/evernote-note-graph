@@ -1,4 +1,5 @@
 # Improvements
+* Output logs to stdout and logfile (https://github.com/sirupsen/logrus/issues/689#issuecomment-357042506)
 * Consider fetching notes content in parallel
 * Consider skipping invalid URLs with warning instead of error
 * Review usage of pass-by-value vs pass-by-reference across the codebase for efficiency purpose
