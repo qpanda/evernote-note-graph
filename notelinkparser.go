@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/antchfx/htmlquery"
+	"github.com/sirupsen/logrus"
 )
 
 // NoteLinkParser can be used to create and parse NoteLinks
@@ -33,15 +34,16 @@ func (elp *NoteLinkParser) ExtractNoteLinks(noteGUID, noteContent string) ([]Not
 	noteLinks := []NoteLink{}
 	htmlLinks := htmlquery.Find(enmlDocument, "//a")
 	for _, a := range htmlLinks {
+		linkHref := htmlquery.SelectAttr(a, "href")
 		linkText := htmlquery.InnerText(a)
-		linkURL, err := url.Parse(htmlquery.SelectAttr(a, "href"))
+		linkURL, err := url.Parse(linkHref)
 		if err != nil {
-			return nil, fmt.Errorf("Failed to parse URL with text [%s] in content of note with GUID [%s]: %w", linkText, noteGUID, err)
-		}
-
-		noteLink := elp.ParseNoteLink(noteGUID, *linkURL, linkText)
-		if noteLink != nil {
-			noteLinks = append(noteLinks, *noteLink)
+			logrus.Errorf("Failed to parse URL with href [%s] and text [%s] in content of note with GUID [%s]: %v", linkHref, linkText, noteGUID, err)
+		} else {
+			noteLink := elp.ParseNoteLink(noteGUID, *linkURL, linkText)
+			if noteLink != nil {
+				noteLinks = append(noteLinks, *noteLink)
+			}
 		}
 	}
 
