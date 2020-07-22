@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/freddy33/graphml"
 	uuid "github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
@@ -23,33 +21,33 @@ func NewNoteGraphUtil() *NoteGraphUtil {
 
 // PrintNoteGraphStats prints NoteGraph stats to stdout
 func (ngu *NoteGraphUtil) PrintNoteGraphStats(noteGraph *NoteGraph) {
-	fmt.Printf("NoteGraph Stats\n")
-	fmt.Printf("   Notes: %d\n", len(*noteGraph.GetNotes()))
-	fmt.Printf("   Linked Notes: %d\n", len(*noteGraph.GetLinkedNotes()))
-	fmt.Printf("   Note Links: %d\n", len(*noteGraph.GetNoteLinks()))
-	fmt.Printf("   Valid Note Links: %d\n", len(*noteGraph.GetValidNoteLinks()))
-	fmt.Printf("   Broken Note Links: %d\n", len(*noteGraph.GetBrokenNoteLinks()))
+	logrus.Infof("NoteGraph Stats")
+	logrus.Infof("   Notes: %d", len(*noteGraph.GetNotes()))
+	logrus.Infof("   Linked Notes: %d", len(*noteGraph.GetLinkedNotes()))
+	logrus.Infof("   Note Links: %d", len(*noteGraph.GetNoteLinks()))
+	logrus.Infof("   Valid Note Links: %d", len(*noteGraph.GetValidNoteLinks()))
+	logrus.Infof("   Broken Note Links: %d", len(*noteGraph.GetBrokenNoteLinks()))
 }
 
 // PrintBrokenNoteLinks prints all broken NoteLinks
 func (ngu *NoteGraphUtil) PrintBrokenNoteLinks(noteGraph *NoteGraph) {
 	brokenNoteLinks := *noteGraph.GetBrokenNoteLinks()
 	if len(brokenNoteLinks) > 0 {
-		fmt.Printf("Broken Note Links\n")
+		logrus.Infof("Broken Note Links")
 		for _, noteLink := range brokenNoteLinks {
 			sourceNote := noteGraph.GetNote(noteLink.SourceNoteGUID)
 			targetNote := noteGraph.GetNote(noteLink.SourceNoteGUID)
-			fmt.Printf("   NoteLink [%v] from source Note [%v] to target Note [%v]\n", brokenNoteLinks, sourceNote, targetNote)
+			logrus.Infof("   NoteLink [%v] from source Note [%v] to target Note [%v]", brokenNoteLinks, sourceNote, targetNote)
 		}
 	}
 }
 
 // ConvertNoteGraph converts the NoteGraph into a GraphML document
 func (ngu *NoteGraphUtil) ConvertNoteGraph(noteGraph *NoteGraph, allNotes bool) *graphml.Document {
-	logrus.Infof("Converting NoteGraph to GraphML")
-
 	notes := ngu.GraphNotes(noteGraph, allNotes)
 	noteLinks := ngu.GraphNoteLinks(noteGraph)
+
+	logrus.Infof("Converting NoteGraph with [%d] notes and [%d] note links to GraphML", len(notes), len(noteLinks))
 
 	nodes := ngu.CreateNodes(notes)
 	edges := ngu.CreateEdges(noteLinks)
