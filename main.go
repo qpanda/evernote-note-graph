@@ -61,6 +61,7 @@ func InitEvernoteClient(edamAuthToken string, sandbox bool) IEvernoteClient {
 func InitNoteLinkParser(evernoteClient IEvernoteClient) *NoteLinkParser {
 	user, err := evernoteClient.GetUser()
 	if err != nil {
+		logrus.Errorf("Failed to retrieve user from Evernote API at [%s]: %v", evernoteClient.GetHost(), err)
 		panic(err)
 	}
 
@@ -83,6 +84,7 @@ func InitEvernoteNoteGraph(edamAuthToken string, sandbox bool, noteURLType URLTy
 func CreateNoteGraph(evernoteNoteGraph *EvernoteNoteGraph) *NoteGraph {
 	noteGraph, noteGraphErr := evernoteNoteGraph.CreateNoteGraph()
 	if noteGraphErr != nil {
+		logrus.Errorf("Failed to create NoteGraph from Evernote API at [%s]: %v", evernoteNoteGraph.EvernoteClient.GetHost(), noteGraphErr)
 		panic(noteGraphErr)
 	}
 
@@ -94,6 +96,7 @@ func SaveNoteGraph(noteGraph *NoteGraph, linkedNotes bool, graphMLFilename strin
 	graphMLDocument := NewNoteGraphUtil().ConvertNoteGraph(noteGraph, !linkedNotes)
 	saveGraphMLErr := NewGraphMLUtil().SaveGraphMLDocument(graphMLFilename, graphMLDocument)
 	if saveGraphMLErr != nil {
+		logrus.Errorf("Failed to save NoteGraph to GraphML file [%s]: %v", graphMLFilename, saveGraphMLErr)
 		panic(saveGraphMLErr)
 	}
 }

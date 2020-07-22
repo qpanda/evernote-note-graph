@@ -27,16 +27,16 @@ func NewNoteLinkParser(evernoteHost, userID, shardID string) *NoteLinkParser {
 func (elp *NoteLinkParser) ExtractNoteLinks(noteGUID, noteContent string) ([]NoteLink, error) {
 	enmlDocument, err := htmlquery.Parse(strings.NewReader(noteContent))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to parse note content of note with GUID [%s]: %w", noteGUID, err)
 	}
 
 	noteLinks := []NoteLink{}
 	htmlLinks := htmlquery.Find(enmlDocument, "//a")
 	for _, a := range htmlLinks {
-		linkURL, err := url.Parse(htmlquery.SelectAttr(a, "href"))
 		linkText := htmlquery.InnerText(a)
+		linkURL, err := url.Parse(htmlquery.SelectAttr(a, "href"))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to parse URL with text [%s] in content of note with GUID [%s]: %w", linkText, noteGUID, err)
 		}
 
 		noteLink := elp.ParseNoteLink(noteGUID, *linkURL, linkText)

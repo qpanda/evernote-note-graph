@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"net/url"
 
 	"github.com/dreampuf/evernote-sdk-golang/edam"
@@ -33,16 +34,16 @@ func (eng *EvernoteNoteGraph) CreateNoteGraph() (*NoteGraph, error) {
 	offset := int32(0)
 	noteGraph := NewNoteGraph()
 	for {
-		logrus.Debugf("Processing Evernote notes from offset [%d] with page size [%d]", offset, PageSize)
+		logrus.Debugf("Processing metadata of Evernote notes from offset [%d] with page size [%d]", offset, PageSize)
 		noteMetadataList, err := eng.EvernoteClient.FindAllNotesMetadata(offset, PageSize)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to process metadata of Evernote notes from offset [%d] with page size [%d]: %w", offset, PageSize, err)
 		}
 
 		for _, noteMetadata := range noteMetadataList.GetNotes() {
 			note, noteLinks, err := eng.ProcessEvernoteNote(noteMetadata)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("Failed to process Evernote note with GUID [%s] and title [%s]: %w", noteMetadata.GetGUID(), noteMetadata.GetTitle(), err)
 			}
 
 			noteGraph.Add(*note, noteLinks)
@@ -63,12 +64,12 @@ func (eng *EvernoteNoteGraph) ProcessEvernoteNote(noteMetadata *edam.NoteMetadat
 
 	note, err := eng.CreateNote(noteMetadata)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("Failed to create Note for Evernote note with GUID [%s] and title [%s]: %w", noteMetadata.GetGUID(), noteMetadata.GetTitle(), err)
 	}
 
 	noteLinks, err := eng.FetchContentAndExtractNoteLinks(noteMetadata)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("Failed to fetch content or extract NoteLinks from Evernote note with GUID [%s] and title [%s]: %w", noteMetadata.GetGUID(), noteMetadata.GetTitle(), err)
 	}
 
 	selectedNoteLinks := eng.SelectNoteLinks(note, noteLinks)
@@ -83,7 +84,7 @@ func (eng *EvernoteNoteGraph) CreateNote(noteMetadata *edam.NoteMetadata) (*Note
 	noteTitle := noteMetadata.GetTitle()
 	noteURL, noteURLType, err := eng.CreateNoteURL(noteGUID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create Note URL for Evernote note with GUID [%s] and title [%s]: %w", noteMetadata.GetGUID(), noteMetadata.GetTitle(), err)
 	}
 
 	return &Note{GUID: noteGUID, Title: noteTitle, Description: noteTitle, URL: *noteURL, URLType: *noteURLType}, nil
@@ -94,20 +95,20 @@ func (eng *EvernoteNoteGraph) CreateNoteURL(noteGUID string) (*url.URL, *URLType
 	if eng.NoteURLType == WebLink {
 		noteURL, err := eng.NoteLinkParser.CreateWebLinkURL(noteGUID)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, fmt.Errorf("Failed to create WebLink URL for Note with GUID [%s]: %w", noteGUID, err)
 		}
 
 		return noteURL, &eng.NoteURLType, nil
 	} else if eng.NoteURLType == AppLink {
 		noteURL, err := eng.NoteLinkParser.CreateAppLinkURL(noteGUID)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, fmt.Errorf("Failed to create AppLink URL for Note with GUID [%s]: %w", noteGUID, err)
 		}
 
 		return noteURL, &eng.NoteURLType, nil
 	}
 
-	return nil, nil, errors.New("Invalid NoteURLType [" + eng.NoteURLType.String() + "], unable to create Note URL")
+	return nil, nil, errors.New("Failed to create URL for Note with GUID [" + noteGUID + "]: Invalid/Unsupported NoteURLType [" + eng.NoteURLType.String() + "]")
 }
 
 // FetchContentAndExtractNoteLinks extracts NoteLinks for the NoteGraph from the Evernote note metadata and content
@@ -115,13 +116,13 @@ func (eng *EvernoteNoteGraph) FetchContentAndExtractNoteLinks(noteMetadata *edam
 	logrus.Debugf("Fetching content of Evernote note with GUID [%s] and title [%s]", noteMetadata.GetGUID(), noteMetadata.GetTitle())
 	evernoteNote, err := eng.EvernoteClient.GetNoteWithContent(noteMetadata.GetGUID())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to fetch content of Evernote note with GUID [%s] and title [%s]: %w", noteMetadata.GetGUID(), noteMetadata.GetTitle(), err)
 	}
 
-	logrus.Debugf("Parsing ENML of Evernote note with GUID [%s] and title [%s]", noteMetadata.GetGUID(), noteMetadata.GetTitle())
+	logrus.Debugf("Parsing content of Evernote note with GUID [%s] and title [%s]", noteMetadata.GetGUID(), noteMetadata.GetTitle())
 	noteLinks, err := eng.NoteLinkParser.ExtractNoteLinks(string(evernoteNote.GetGUID()), evernoteNote.GetContent())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to parse content of Evernote note with GUID [%s] and title [%s]: %w", noteMetadata.GetGUID(), noteMetadata.GetTitle(), err)
 	}
 
 	logrus.Debugf("Detected [%d] NoteLinks in Evernote note with GUID [%s] and title [%s]", len(noteLinks), evernoteNote.GetGUID(), evernoteNote.GetTitle())

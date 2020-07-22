@@ -1,9 +1,6 @@
-# Features
+# Improvements
 * Consider fetching notes content in parallel
 * Consider skipping invalid URLs with warning instead of error
-
-# Improvements
-* Better error handling / propagation, log errors?
 * Review usage of pass-by-value vs pass-by-reference across the codebase for efficiency purpose
 * Consider surrounding note and edge labels and descriptsion with CDATA in GraphML output
 * Review codebase for missing parameter validation

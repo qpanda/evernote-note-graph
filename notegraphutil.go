@@ -47,10 +47,10 @@ func (ngu *NoteGraphUtil) ConvertNoteGraph(noteGraph *NoteGraph, allNotes bool) 
 	notes := ngu.GraphNotes(noteGraph, allNotes)
 	noteLinks := ngu.GraphNoteLinks(noteGraph)
 
-	logrus.Infof("Converting NoteGraph with [%d] notes and [%d] note links to GraphML", len(notes), len(noteLinks))
-
 	nodes := ngu.CreateNodes(notes)
 	edges := ngu.CreateEdges(noteLinks)
+
+	logrus.Infof("Converting NoteGraph with [%d|%d] Notes|nodes and [%d|%d] NoteLinks|edges to GraphML", len(notes), len(nodes), len(noteLinks), len(edges))
 
 	graph := ngu.GraphMLUtil.CreateGraph(NoteGraphID, graphml.EdgeDirected, nodes, edges)
 	return ngu.GraphMLUtil.CreateGraphMLDocument([]graphml.Graph{*graph})

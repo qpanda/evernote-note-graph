@@ -77,7 +77,7 @@ func (ec *EvernoteClient) GetUserStoreClient() (*edam.UserStoreClient, error) {
 
 	thriftTransport, err := thrift.NewTHttpClient(ec.GetUserStoreURL())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create Thrift HttpClient with UserStoreURL [%v]: %w", ec.GetUserStoreURL(), err)
 	}
 
 	thriftClient := thrift.NewTStandardClient(thrift.NewTBinaryProtocolFactoryDefault().GetProtocol(thriftTransport), thrift.NewTBinaryProtocolFactory(true, true).GetProtocol(thriftTransport))
@@ -89,7 +89,7 @@ func (ec *EvernoteClient) GetUserStoreClient() (*edam.UserStoreClient, error) {
 func (ec *EvernoteClient) GetUser() (*edam.User, error) {
 	userStoreClient, err := ec.GetUserStoreClient()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create UserStoreClient: %w", err)
 	}
 
 	retriable := retry.New()
@@ -109,7 +109,7 @@ func (ec *EvernoteClient) GetUser() (*edam.User, error) {
 	})
 
 	if retriableErr != nil {
-		return nil, retriableErr
+		return nil, fmt.Errorf("Failed to retrieve user information from Evernote API endpoint [%s] after [%d] retries: %w", ec.GetHost(), Retries, retriableErr)
 	}
 
 	return user, nil
@@ -123,7 +123,7 @@ func (ec *EvernoteClient) GetNoteStoreClient() (*edam.NoteStoreClient, error) {
 
 	userStoreClient, err := ec.GetUserStoreClient()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create UserStoreClient: %w", err)
 	}
 
 	retriable := retry.New()
@@ -143,12 +143,12 @@ func (ec *EvernoteClient) GetNoteStoreClient() (*edam.NoteStoreClient, error) {
 	})
 
 	if retriableErr != nil {
-		return nil, retriableErr
+		return nil, fmt.Errorf("Failed to retrieve user URLs from Evernote API endpoint [%s] after [%d] retries: %w", ec.GetHost(), Retries, retriableErr)
 	}
 
 	thriftTransport, err := thrift.NewTHttpClient(userUrls.GetNoteStoreUrl())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create Thrift HttpClient with NoteStoreURL [%v]: %w", userUrls.GetNoteStoreUrl(), err)
 	}
 
 	thriftClient := thrift.NewTStandardClient(thrift.NewTBinaryProtocolFactoryDefault().GetProtocol(thriftTransport), thrift.NewTBinaryProtocolFactory(true, true).GetProtocol(thriftTransport))
@@ -160,7 +160,7 @@ func (ec *EvernoteClient) GetNoteStoreClient() (*edam.NoteStoreClient, error) {
 func (ec *EvernoteClient) FindAllNotesMetadata(offset int32, maxNotes int32) (*edam.NotesMetadataList, error) {
 	noteStoreClient, err := ec.GetNoteStoreClient()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create NoteStoreClient: %w", err)
 	}
 
 	retriable := retry.New()
@@ -183,7 +183,7 @@ func (ec *EvernoteClient) FindAllNotesMetadata(offset int32, maxNotes int32) (*e
 	})
 
 	if retriableErr != nil {
-		return nil, retriableErr
+		return nil, fmt.Errorf("Failed to retrieve metadata for notes from offset [%d] with page size [%d] from Evernote API endpoint [%s] after [%d] retries: %w", offset, maxNotes, ec.GetHost(), Retries, retriableErr)
 	}
 
 	return notesMetadataList, nil
@@ -193,7 +193,7 @@ func (ec *EvernoteClient) FindAllNotesMetadata(offset int32, maxNotes int32) (*e
 func (ec *EvernoteClient) GetNoteWithContent(guid edam.GUID) (*edam.Note, error) {
 	noteStoreClient, err := ec.GetNoteStoreClient()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create NoteStoreClient: %w", err)
 	}
 
 	retriable := retry.New()
@@ -215,7 +215,7 @@ func (ec *EvernoteClient) GetNoteWithContent(guid edam.GUID) (*edam.Note, error)
 	})
 
 	if retriableErr != nil {
-		return nil, retriableErr
+		return nil, fmt.Errorf("Failed to retrieve note with GUID [%s] from Evernote API endpoint [%s] after [%d] retries: %w", guid, ec.GetHost(), Retries, retriableErr)
 	}
 
 	return note, nil

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/xml"
+	"fmt"
 	"os"
 
 	"github.com/freddy33/graphml"
@@ -53,12 +54,12 @@ func (gu *GraphMLUtil) SaveGraphMLDocument(filename string, graphMLDocument *gra
 	file, fileErr := os.Create(filename)
 	defer file.Close()
 	if fileErr != nil {
-		return fileErr
+		return fmt.Errorf("Failed to create GraphML document file [%s]: %w", filename, fileErr)
 	}
 
 	encodeErr := graphml.Encode(file, graphMLDocument)
 	if encodeErr != nil {
-		return encodeErr
+		return fmt.Errorf("Failed to encode GraphML document to file [%s]: %w", filename, encodeErr)
 	}
 
 	return nil
