@@ -34,7 +34,7 @@ func (eng *EvernoteNoteGraph) CreateNoteGraph() (*NoteGraph, error) {
 	offset := int32(0)
 	noteGraph := NewNoteGraph()
 	for {
-		logrus.Debugf("Processing metadata of Evernote notes from offset [%d] with page size [%d]", offset, PageSize)
+		logrus.Infof("Processing metadata of Evernote notes from offset [%d] with page size [%d]", offset, PageSize)
 		noteMetadataList, err := eng.EvernoteClient.FindAllNotesMetadata(offset, PageSize)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to process metadata of Evernote notes from offset [%d] with page size [%d]: %w", offset, PageSize, err)
@@ -53,6 +53,8 @@ func (eng *EvernoteNoteGraph) CreateNoteGraph() (*NoteGraph, error) {
 		if remainingNotes == 0 {
 			break
 		}
+
+		offset += PageSize
 	}
 
 	return noteGraph, nil
