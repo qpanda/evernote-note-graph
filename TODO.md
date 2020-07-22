@@ -1,5 +1,4 @@
 # Features
-* Write unit test for NewURLType
 * Retry for for EvernoteClient remote calls
 * Consider fetching notes content in parallel
 * Consider skipping invalid URLs with warning instead of error

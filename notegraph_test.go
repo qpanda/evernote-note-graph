@@ -6,6 +6,27 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestNewURLType(t *testing.T) {
+	appLinkURLType, appLinkErr := NewURLType("AppLink")
+	assert.Nil(t, appLinkErr)
+	assert.Equal(t, AppLink, *appLinkURLType)
+
+	webLinkURLType, webLinkErr := NewURLType("WebLink")
+	assert.Nil(t, webLinkErr)
+	assert.Equal(t, WebLink, *webLinkURLType)
+
+	publicLinkURLType, publicLinkErr := NewURLType("PublicLink")
+	assert.Nil(t, publicLinkErr)
+	assert.Equal(t, PublicLink, *publicLinkURLType)
+
+	shortenedLinkURLType, shortenedLinkErr := NewURLType("ShortenedLink")
+	assert.Nil(t, shortenedLinkErr)
+	assert.Equal(t, ShortenedLink, *shortenedLinkURLType)
+
+	_, unknownLinkErr := NewURLType("UnknownLink")
+	assert.NotNil(t, unknownLinkErr)
+}
+
 func TestAdd(t *testing.T) {
 	// two Notes, one broken NoteLink
 	noteGraphA := NewNoteGraph()
