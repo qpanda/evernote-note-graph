@@ -10,6 +10,7 @@ require (
 	github.com/dreampuf/evernote-sdk-golang v0.0.0-20200205091351-d2ad936dfa1c
 	github.com/freddy33/graphml v1.0.0
 	github.com/satori/go.uuid v1.2.0
+	github.com/shafreeck/retry v0.0.0-20200211034702-ed002877bbba
 	github.com/sirupsen/logrus v1.6.0
 	github.com/stretchr/testify v1.3.0
 )

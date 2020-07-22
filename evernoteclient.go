@@ -7,6 +7,7 @@ import (
 
 	"github.com/apache/thrift/lib/go/thrift"
 	"github.com/dreampuf/evernote-sdk-golang/edam"
+	"github.com/shafreeck/retry"
 	"github.com/sirupsen/logrus"
 )
 
@@ -16,7 +17,10 @@ var (
 )
 
 // Timeout specifies the maximum time calls to the Evernote API are allowed to take
-const Timeout = time.Duration(30) * time.Second
+const Timeout = time.Duration(5) * time.Second
+
+// Retries specifies how many times remote calls should be tried before returning an error
+const Retries = 3
 
 // NoteSortOrder defines the order in which note metadata is fetched
 var NoteSortOrder = int32(edam.NoteSortOrder_CREATED)
@@ -88,16 +92,24 @@ func (ec *EvernoteClient) GetUser() (*edam.User, error) {
 		return nil, err
 	}
 
-	context, cancelFunc := context.WithTimeout(context.Background(), Timeout)
-	defer func() {
-		logrus.Tracef("GetUser context completed")
-		cancelFunc()
-	}()
+	retriable := retry.New()
+	context, cancel := context.WithTimeout(context.Background(), Timeout)
+	defer cancel()
 
-	logrus.Debugf("Retrieving user information from Evernote API endpoint [%s]", ec.GetHost())
-	user, err := userStoreClient.GetUser(context, ec.AuthToken)
-	if err != nil {
-		return nil, err
+	user := &edam.User{}
+	retriableErr := retriable.EnsureN(context, Retries, func() error {
+		logrus.Debugf("Retrieving user information from Evernote API endpoint [%s]", ec.GetHost())
+		user, err = userStoreClient.GetUser(context, ec.AuthToken)
+		if err != nil {
+			logrus.Warnf("Retrieving user information from Evernote API endpoint [%s] failed with error [%s] - retrying [%d] times", ec.GetHost(), err, Retries)
+			return retry.Retriable(err)
+		}
+
+		return nil
+	})
+
+	if retriableErr != nil {
+		return nil, retriableErr
 	}
 
 	return user, nil
@@ -114,16 +126,24 @@ func (ec *EvernoteClient) GetNoteStoreClient() (*edam.NoteStoreClient, error) {
 		return nil, err
 	}
 
-	context, cancelFunc := context.WithTimeout(context.Background(), Timeout)
-	defer func() {
-		logrus.Tracef("GetNoteStoreClient context completed")
-		cancelFunc()
-	}()
+	retriable := retry.New()
+	context, cancel := context.WithTimeout(context.Background(), Timeout)
+	defer cancel()
 
-	logrus.Tracef("Retrieving user URLs from Evernote API endpoint [%s]", ec.GetHost())
-	userUrls, err := userStoreClient.GetUserUrls(context, ec.AuthToken)
-	if err != nil {
-		return nil, err
+	userUrls := &edam.UserUrls{}
+	retriableErr := retriable.EnsureN(context, Retries, func() error {
+		logrus.Tracef("Retrieving user URLs from Evernote API endpoint [%s]", ec.GetHost())
+		userUrls, err = userStoreClient.GetUserUrls(context, ec.AuthToken)
+		if err != nil {
+			logrus.Warnf("Retrieving user URLs from Evernote API endpoint [%s] failed with error [%s] - retrying [%d] times", ec.GetHost(), err, Retries)
+			return retry.Retriable(err)
+		}
+
+		return nil
+	})
+
+	if retriableErr != nil {
+		return nil, retriableErr
 	}
 
 	thriftTransport, err := thrift.NewTHttpClient(userUrls.GetNoteStoreUrl())
@@ -143,16 +163,30 @@ func (ec *EvernoteClient) FindAllNotesMetadata(offset int32, maxNotes int32) (*e
 		return nil, err
 	}
 
-	context, cancelFunc := context.WithTimeout(context.Background(), Timeout)
-	defer func() {
-		logrus.Tracef("FindAllNotesMetadata context completed")
-		cancelFunc()
-	}()
+	retriable := retry.New()
+	context, cancel := context.WithTimeout(context.Background(), Timeout)
+	defer cancel()
 
 	filter := &edam.NoteFilter{Order: &NoteSortOrder, Ascending: &no}
 	resultSpec := &edam.NotesMetadataResultSpec{IncludeTitle: &yes, IncludeAttributes: &yes}
-	logrus.Debugf("Retrieving metadata for notes from offset [%d] with page size [%d] from Evernote API endpoint [%s]", offset, maxNotes, ec.GetHost())
-	return noteStoreClient.FindNotesMetadata(context, ec.AuthToken, filter, offset, maxNotes, resultSpec)
+
+	notesMetadataList := &edam.NotesMetadataList{}
+	retriableErr := retriable.EnsureN(context, Retries, func() error {
+		logrus.Debugf("Retrieving metadata for notes from offset [%d] with page size [%d] from Evernote API endpoint [%s]", offset, maxNotes, ec.GetHost())
+		notesMetadataList, err = noteStoreClient.FindNotesMetadata(context, ec.AuthToken, filter, offset, maxNotes, resultSpec)
+		if err != nil {
+			logrus.Warnf("Retrieving metadata for notes from offset [%d] with page size [%d] from Evernote API endpoint [%s] failed with error [%s] - retrying [%d] times", offset, maxNotes, ec.GetHost(), err, Retries)
+			return retry.Retriable(err)
+		}
+
+		return nil
+	})
+
+	if retriableErr != nil {
+		return nil, retriableErr
+	}
+
+	return notesMetadataList, nil
 }
 
 // GetNoteWithContent returns the note specified by the GUID including the note content (ENML)
@@ -162,13 +196,27 @@ func (ec *EvernoteClient) GetNoteWithContent(guid edam.GUID) (*edam.Note, error)
 		return nil, err
 	}
 
-	context, cancelFunc := context.WithTimeout(context.Background(), Timeout)
-	defer func() {
-		logrus.Tracef("GetNoteWithContent context completed")
-		cancelFunc()
-	}()
+	retriable := retry.New()
+	context, cancel := context.WithTimeout(context.Background(), Timeout)
+	defer cancel()
 
 	resultSpec := &edam.NoteResultSpec{IncludeContent: &yes}
-	logrus.Debugf("Retrieving note with GUID [%s] from Evernote API endpoint [%s]", guid, ec.GetHost())
-	return noteStoreClient.GetNoteWithResultSpec(context, ec.AuthToken, guid, resultSpec)
+
+	note := &edam.Note{}
+	retriableErr := retriable.EnsureN(context, Retries, func() error {
+		logrus.Debugf("Retrieving note with GUID [%s] from Evernote API endpoint [%s]", guid, ec.GetHost())
+		note, err = noteStoreClient.GetNoteWithResultSpec(context, ec.AuthToken, guid, resultSpec)
+		if err != nil {
+			logrus.Warnf("Retrieving note with GUID [%s] from Evernote API endpoint [%s] failed with error [%s] - retrying [%d] times", guid, ec.GetHost(), err, Retries)
+			return retry.Retriable(err)
+		}
+
+		return nil
+	})
+
+	if retriableErr != nil {
+		return nil, retriableErr
+	}
+
+	return note, nil
 }
