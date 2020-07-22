@@ -37,7 +37,7 @@ func (ngu *NoteGraphUtil) PrintBrokenNoteLinks(noteGraph *NoteGraph) {
 		for _, noteLink := range brokenNoteLinks {
 			sourceNote := noteGraph.GetNote(noteLink.SourceNoteGUID)
 			targetNote := noteGraph.GetNote(noteLink.SourceNoteGUID)
-			logrus.Infof("   NoteLink [%v] from source Note [%v] to target Note [%v]", brokenNoteLinks, sourceNote, targetNote)
+			logrus.Infof("   NoteLink [%v] from source Note [%v] to target Note [%v]", noteLink, sourceNote, targetNote)
 		}
 	}
 }

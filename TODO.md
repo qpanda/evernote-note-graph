@@ -1,5 +1,7 @@
 # Improvements
-* Output logs to stdout and logfile (https://github.com/sirupsen/logrus/issues/689#issuecomment-357042506)
+* Add unit test for pagination fix and invalid URL handling
+* Check how Roam Research and Obsidian render the note graphs
+* Try to resolve yEd issue with last word not always showing
 * Consider fetching notes content in parallel
 * Consider skipping invalid URLs with warning instead of error
 * Review usage of pass-by-value vs pass-by-reference across the codebase for efficiency purpose
