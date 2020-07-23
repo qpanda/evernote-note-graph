@@ -1,6 +1,8 @@
 package main
 
 import (
+	"strings"
+
 	"github.com/freddy33/graphml"
 	uuid "github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
@@ -74,7 +76,7 @@ func (ngu *NoteGraphUtil) GraphNoteLinks(noteGraph *NoteGraph) []NoteLink {
 func (ngu *NoteGraphUtil) CreateNodes(notes []Note) []graphml.Node {
 	nodes := []graphml.Node{}
 	for _, note := range notes {
-		node := ngu.GraphMLUtil.CreateNode(note.GUID, note.Title, note.Description, note.URL.String())
+		node := ngu.GraphMLUtil.CreateNode(note.GUID, strings.ReplaceAll(note.Title, " ", "·"), strings.ReplaceAll(note.Description, " ", "·"), note.URL.String())
 		nodes = append(nodes, *node)
 	}
 
@@ -85,7 +87,7 @@ func (ngu *NoteGraphUtil) CreateNodes(notes []Note) []graphml.Node {
 func (ngu *NoteGraphUtil) CreateEdges(noteLinks []NoteLink) []graphml.Edge {
 	edges := []graphml.Edge{}
 	for _, noteLink := range noteLinks {
-		edge := ngu.GraphMLUtil.CreateEdge(uuid.NewV4().String(), noteLink.SourceNoteGUID, noteLink.TargetNoteGUID, noteLink.Text, noteLink.Text)
+		edge := ngu.GraphMLUtil.CreateEdge(uuid.NewV4().String(), noteLink.SourceNoteGUID, noteLink.TargetNoteGUID, strings.ReplaceAll(noteLink.Text, " ", "·"), strings.ReplaceAll(noteLink.Text, " ", "·"))
 		edges = append(edges, *edge)
 	}
 
