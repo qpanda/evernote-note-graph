@@ -52,20 +52,21 @@ func TestCreateNote(t *testing.T) {
 	noteLinkParser := NewNoteLinkParser(SandboxEvernoteCom, "userId", "shardId")
 	evernoteNoteGraph := NewEvernoteNoteGraph(nil, noteLinkParser, WebLink)
 
-	evernoteNoteGUID := "1"
+	noteGUID := "1"
+	evernoteNoteGUID := edam.GUID(noteGUID)
 	evernoteNoteTitle := "Test"
-	evernoteNoteMetadata := &edam.NoteMetadata{GUID: edam.GUID(evernoteNoteGUID), Title: &evernoteNoteTitle}
+	evernoteNoteMetadata := &edam.Note{GUID: &evernoteNoteGUID, Title: &evernoteNoteTitle}
 	createdNote, err := evernoteNoteGraph.CreateNote(evernoteNoteMetadata)
 	if err != nil {
 		panic(err)
 	}
 
-	url, err := noteLinkParser.CreateWebLinkURL(evernoteNoteGUID)
+	url, err := noteLinkParser.CreateWebLinkURL(noteGUID)
 	if err != nil {
 		panic(err)
 	}
 
-	expectedNote := &Note{GUID: evernoteNoteGUID, Title: evernoteNoteTitle, Description: evernoteNoteTitle, URL: *url, URLType: WebLink}
+	expectedNote := &Note{GUID: noteGUID, Title: evernoteNoteTitle, Description: evernoteNoteTitle, URL: *url, URLType: WebLink}
 	assert.Equal(t, expectedNote, createdNote)
 }
 
@@ -91,7 +92,7 @@ func TestCreateNoteURL(t *testing.T) {
 	assert.NotNil(t, invalidLinkErr)
 }
 
-func TestFetchContentAndExtractNoteLinksWithoutNoteLinks(t *testing.T) {
+func TestExtractNoteLinksWithoutLinks(t *testing.T) {
 	mockEvernoteClient := new(MockEvernoteClient)
 	noteLinkParser := NewNoteLinkParser(SandboxEvernoteCom, "userId", "shardId")
 	evernoteNoteGraph := NewEvernoteNoteGraph(mockEvernoteClient, noteLinkParser, WebLink)
@@ -99,10 +100,9 @@ func TestFetchContentAndExtractNoteLinksWithoutNoteLinks(t *testing.T) {
 	evernoteNoteGUID := edam.GUID("1")
 	evernoteNoteTitle := "Test"
 	evernoteNoteContent := `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd"><en-note><div>Test</div></en-note>`
-	evernoteNoteMetadata := &edam.NoteMetadata{GUID: evernoteNoteGUID, Title: &evernoteNoteTitle}
-	mockEvernoteClient.On("GetNoteWithContent", evernoteNoteGUID).Return(&edam.Note{GUID: &evernoteNoteGUID, Title: &evernoteNoteTitle, Content: &evernoteNoteContent}, nil)
+	evernoteNote := edam.Note{GUID: &evernoteNoteGUID, Title: &evernoteNoteTitle, Content: &evernoteNoteContent}
 
-	noteLinks, err := evernoteNoteGraph.FetchContentAndExtractNoteLinks(evernoteNoteMetadata)
+	noteLinks, err := evernoteNoteGraph.ExtractNoteLinks(&evernoteNote)
 	if err != nil {
 		panic(err)
 	}
@@ -110,7 +110,25 @@ func TestFetchContentAndExtractNoteLinksWithoutNoteLinks(t *testing.T) {
 	assert.Empty(t, noteLinks)
 }
 
-func TestFetchContentAndExtractNoteLinksWithLinks(t *testing.T) {
+func TestExtractNoteLinksWithLinks(t *testing.T) {
+	mockEvernoteClient := new(MockEvernoteClient)
+	noteLinkParser := NewNoteLinkParser(EvernoteCom, "76136038", "s12")
+	evernoteNoteGraph := NewEvernoteNoteGraph(mockEvernoteClient, noteLinkParser, WebLink)
+
+	evernoteNoteGUID := edam.GUID("1")
+	evernoteNoteTitle := "Test"
+	evernoteNoteContent := `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd"><en-note><div><a href="https://example.org/">NonNoteLink</a></div><div><a href="https://www.evernote.com/shard/s12/nl/76136038/d72dfad0-7d58-41b5-b2c9-4ca434abd543/">WebLink</a></div><div><a href="evernote:///view/76136038/s12/4d971333-8b65-45d6-857b-243c850cabf5/4d971333-8b65-45d6-857b-243c850cabf5/">AppLink</a></div><div><a href="https://www.evernote.com/shard/s12/sh/4d971333-8b65-45d6-857b-243c850cabf5/25771cdb535e9183/">PublicLink</a></div><div><a href="https://www.evernote.com/l/AAxNlxMzi2VF1oV7JDyFDKv1JXcc21NekYM">ShortenedLink</a></div></en-note>`
+	evernoteNote := edam.Note{GUID: &evernoteNoteGUID, Title: &evernoteNoteTitle, Content: &evernoteNoteContent}
+
+	noteLinks, err := evernoteNoteGraph.ExtractNoteLinks(&evernoteNote)
+	if err != nil {
+		panic(err)
+	}
+
+	assert.Len(t, noteLinks, 4)
+}
+
+func TestFetchNote(t *testing.T) {
 	mockEvernoteClient := new(MockEvernoteClient)
 	noteLinkParser := NewNoteLinkParser(EvernoteCom, "76136038", "s12")
 	evernoteNoteGraph := NewEvernoteNoteGraph(mockEvernoteClient, noteLinkParser, WebLink)
@@ -119,17 +137,18 @@ func TestFetchContentAndExtractNoteLinksWithLinks(t *testing.T) {
 	evernoteNoteTitle := "Test"
 	evernoteNoteContent := `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd"><en-note><div><a href="https://example.org/">NonNoteLink</a></div><div><a href="https://www.evernote.com/shard/s12/nl/76136038/d72dfad0-7d58-41b5-b2c9-4ca434abd543/">WebLink</a></div><div><a href="evernote:///view/76136038/s12/4d971333-8b65-45d6-857b-243c850cabf5/4d971333-8b65-45d6-857b-243c850cabf5/">AppLink</a></div><div><a href="https://www.evernote.com/shard/s12/sh/4d971333-8b65-45d6-857b-243c850cabf5/25771cdb535e9183/">PublicLink</a></div><div><a href="https://www.evernote.com/l/AAxNlxMzi2VF1oV7JDyFDKv1JXcc21NekYM">ShortenedLink</a></div></en-note>`
 	evernoteNoteMetadata := &edam.NoteMetadata{GUID: evernoteNoteGUID, Title: &evernoteNoteTitle}
-	mockEvernoteClient.On("GetNoteWithContent", evernoteNoteGUID).Return(&edam.Note{GUID: &evernoteNoteGUID, Title: &evernoteNoteTitle, Content: &evernoteNoteContent}, nil)
+	expectedEvernoteNote := edam.Note{GUID: &evernoteNoteGUID, Title: &evernoteNoteTitle, Content: &evernoteNoteContent}
+	mockEvernoteClient.On("GetNoteWithContent", evernoteNoteGUID).Return(&expectedEvernoteNote, nil)
 
-	noteLinks, err := evernoteNoteGraph.FetchContentAndExtractNoteLinks(evernoteNoteMetadata)
+	actualEvernoteNote, err := evernoteNoteGraph.FetchNote(evernoteNoteMetadata)
 	if err != nil {
 		panic(err)
 	}
 
-	assert.Len(t, noteLinks, 4)
+	assert.Equal(t, expectedEvernoteNote, *actualEvernoteNote)
 }
 
-func TestCreateNoteGraphWithNoNotes(t *testing.T) {
+func TestCreateNoteGraphWithoutNotes(t *testing.T) {
 	mockEvernoteClient := new(MockEvernoteClient)
 	noteLinkParser := NewNoteLinkParser(SandboxEvernoteCom, "userId", "shardId")
 	evernoteNoteGraph := NewEvernoteNoteGraph(mockEvernoteClient, noteLinkParser, WebLink)
