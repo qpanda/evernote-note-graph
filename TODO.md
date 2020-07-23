@@ -1,5 +1,4 @@
 # Improvements
-* Add unit test for pagination fix
 * Check how Roam Research and Obsidian render the note graphs
 * Try to resolve yEd issue with last word not always showing
 * Consider fetching notes content in parallel
