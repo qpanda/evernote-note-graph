@@ -1,6 +1,5 @@
 # Improvements
 * Check how Roam Research and Obsidian render the note graphs
-* Try to resolve yEd issue with last word not always showing
 * Consider fetching notes content in parallel
 * Consider skipping invalid URLs with warning instead of error
 * Review usage of pass-by-value vs pass-by-reference across the codebase for efficiency purpose
