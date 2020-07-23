@@ -9,8 +9,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// PageSize specifies the number of notes to fetch metadata from the Evernote API from in one go
-const PageSize = 100
+// DefaultPageSize specifies the default number of notes to fetch metadata from the Evernote API from in one go
+const DefaultPageSize = 100
 
 // EvernoteNoteGraph generates a NoteGraph of all Evernote notes and stores the graph as GraphML document
 type EvernoteNoteGraph struct {
@@ -18,6 +18,7 @@ type EvernoteNoteGraph struct {
 	NoteLinkParser *NoteLinkParser
 	NoteURLType    URLType
 	GraphMLUtil    *GraphMLUtil
+	PageSize       int32
 }
 
 // NewEvernoteNoteGraph creates a new instance of EvernoteNoteGraph
@@ -26,7 +27,18 @@ func NewEvernoteNoteGraph(evernoteClient IEvernoteClient, noteLinkParser *NoteLi
 		EvernoteClient: evernoteClient,
 		NoteLinkParser: noteLinkParser,
 		NoteURLType:    noteURLType,
-		GraphMLUtil:    &GraphMLUtil{}}
+		GraphMLUtil:    &GraphMLUtil{},
+		PageSize:       DefaultPageSize}
+}
+
+// SetPageSize sets the pagesize
+func (eng *EvernoteNoteGraph) SetPageSize(pageSize int32) {
+	eng.PageSize = pageSize
+}
+
+// GetPageSize gets the pagesize
+func (eng *EvernoteNoteGraph) GetPageSize() int32 {
+	return eng.PageSize
 }
 
 // CreateNoteGraph creates a NoteGraph based on all Evernote notes in the Evernote account
@@ -34,10 +46,10 @@ func (eng *EvernoteNoteGraph) CreateNoteGraph() (*NoteGraph, error) {
 	offset := int32(0)
 	noteGraph := NewNoteGraph()
 	for {
-		logrus.Infof("Processing metadata of Evernote notes from offset [%d] with page size [%d]", offset, PageSize)
-		noteMetadataList, err := eng.EvernoteClient.FindAllNotesMetadata(offset, PageSize)
+		logrus.Infof("Processing metadata of Evernote notes from offset [%d] with page size [%d]", offset, eng.PageSize)
+		noteMetadataList, err := eng.EvernoteClient.FindAllNotesMetadata(offset, eng.PageSize)
 		if err != nil {
-			return nil, fmt.Errorf("Failed to process metadata of Evernote notes from offset [%d] with page size [%d]: %w", offset, PageSize, err)
+			return nil, fmt.Errorf("Failed to process metadata of Evernote notes from offset [%d] with page size [%d]: %w", offset, eng.PageSize, err)
 		}
 
 		for _, noteMetadata := range noteMetadataList.GetNotes() {
@@ -54,7 +66,7 @@ func (eng *EvernoteNoteGraph) CreateNoteGraph() (*NoteGraph, error) {
 			break
 		}
 
-		offset += PageSize
+		offset += eng.PageSize
 	}
 
 	return noteGraph, nil

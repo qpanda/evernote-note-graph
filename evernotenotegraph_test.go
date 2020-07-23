@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/dreampuf/evernote-sdk-golang/edam"
@@ -144,7 +145,7 @@ func TestCreateNoteGraphWithNoNotes(t *testing.T) {
 	assert.Empty(t, noteGraph.NoteLinks)
 }
 
-func TestCreateNoteGraphWithNotes(t *testing.T) {
+func TestCreateNoteGraphWithOneNote(t *testing.T) {
 	mockEvernoteClient := new(MockEvernoteClient)
 	noteLinkParser := NewNoteLinkParser(EvernoteCom, "76136038", "s12")
 	evernoteNoteGraph := NewEvernoteNoteGraph(mockEvernoteClient, noteLinkParser, WebLink)
@@ -166,4 +167,44 @@ func TestCreateNoteGraphWithNotes(t *testing.T) {
 
 	assert.Len(t, noteGraph.Notes, 1)
 	assert.Len(t, noteGraph.NoteLinks, 2)
+}
+
+func TestCreateNoteGraphWithMultipleNotes(t *testing.T) {
+	mockEvernoteClient := new(MockEvernoteClient)
+	noteLinkParser := NewNoteLinkParser(EvernoteCom, "76136038", "s12")
+	evernoteNoteGraph := NewEvernoteNoteGraph(mockEvernoteClient, noteLinkParser, WebLink)
+	evernoteNoteGraph.SetPageSize(2)
+
+	evernoteNoteMetadataListFirstPage, notesFirstPage := CreateNotes(0, int32(2), int32(3))
+	mockEvernoteClient.On("FindAllNotesMetadata", int32(0), int32(2)).Return(evernoteNoteMetadataListFirstPage, nil)
+	mockEvernoteClient.On("GetNoteWithContent", notesFirstPage[0].GetGUID()).Return(&notesFirstPage[0], nil)
+	mockEvernoteClient.On("GetNoteWithContent", notesFirstPage[1].GetGUID()).Return(&notesFirstPage[1], nil)
+
+	evernoteNoteMetadataListSecondPage, notesSecondPage := CreateNotes(2, int32(1), int32(3))
+	mockEvernoteClient.On("FindAllNotesMetadata", int32(2), int32(2)).Return(evernoteNoteMetadataListSecondPage, nil)
+	mockEvernoteClient.On("GetNoteWithContent", notesSecondPage[0].GetGUID()).Return(&notesSecondPage[0], nil)
+
+	noteGraph, err := evernoteNoteGraph.CreateNoteGraph()
+	if err != nil {
+		panic(err)
+	}
+
+	assert.Len(t, noteGraph.Notes, 3)
+	assert.Len(t, noteGraph.NoteLinks, 6)
+}
+
+func CreateNotes(offset, count, total int32) (*edam.NotesMetadataList, []edam.Note) {
+	var noteMetadatas []*edam.NoteMetadata
+	var notes []edam.Note
+
+	for i := offset; i < offset+count; i++ {
+		evernoteNoteGUID := edam.GUID(fmt.Sprint(i))
+		evernoteNoteTitle := "Test"
+		evernoteNoteContent := `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd"><en-note><div><a href="https://example.org/">NonNoteLink</a></div><div><a href="https://www.evernote.com/shard/s12/nl/76136038/d72dfad0-7d58-41b5-b2c9-4ca434abd543/">WebLink</a></div><div><a href="evernote:///view/76136038/s12/4d971333-8b65-45d6-857b-243c850cabf5/4d971333-8b65-45d6-857b-243c850cabf5/">AppLink</a></div><div><a href="https://www.evernote.com/shard/s12/sh/4d971333-8b65-45d6-857b-243c850cabf5/25771cdb535e9183/">PublicLink</a></div><div><a href="https://www.evernote.com/l/AAxNlxMzi2VF1oV7JDyFDKv1JXcc21NekYM">ShortenedLink</a></div></en-note>`
+
+		noteMetadatas = append(noteMetadatas, &edam.NoteMetadata{GUID: evernoteNoteGUID, Title: &evernoteNoteTitle})
+		notes = append(notes, edam.Note{GUID: &evernoteNoteGUID, Title: &evernoteNoteTitle, Content: &evernoteNoteContent})
+	}
+
+	return &edam.NotesMetadataList{StartIndex: offset, TotalNotes: total, Notes: noteMetadatas}, notes
 }
