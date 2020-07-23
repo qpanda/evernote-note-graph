@@ -25,6 +25,7 @@ var testENML = `<?xml version="1.0" encoding="UTF-8"?>
 	<div><a href="evernote:///view/76136038/s12/4d971333-8b65-45d6-857b-243c850cabf5/4d971333-8b65-45d6-857b-243c850cabf5/">AppLink</a></div>
 	<div><a href="https://www.evernote.com/shard/s12/sh/4d971333-8b65-45d6-857b-243c850cabf5/25771cdb535e9183/">PublicLink</a></div>
 	<div><a href="https://www.evernote.com/l/AAxNlxMzi2VF1oV7JDyFDKv1JXcc21NekYM">ShortenedLink</a></div>
+	<div><a href="INVALID URL">InvalidLink</a></div>
 </en-note>`
 
 func TestCreateWebLinkURL(t *testing.T) {
@@ -119,6 +120,10 @@ func TestExtractNoteLinks(t *testing.T) {
 	}
 
 	assert.Len(t, noteLinks, 4)
+	assert.Contains(t, noteLinks, NoteLink{SourceNoteGUID: noteGUID, TargetNoteGUID: "d72dfad0-7d58-41b5-b2c9-4ca434abd543", Text: "WebLink", URL: *CreateURL("https://www.evernote.com/shard/s12/nl/76136038/d72dfad0-7d58-41b5-b2c9-4ca434abd543/"), URLType: WebLink})
+	assert.Contains(t, noteLinks, NoteLink{SourceNoteGUID: noteGUID, TargetNoteGUID: "4d971333-8b65-45d6-857b-243c850cabf5", Text: "AppLink", URL: *CreateURL("evernote:///view/76136038/s12/4d971333-8b65-45d6-857b-243c850cabf5/4d971333-8b65-45d6-857b-243c850cabf5/"), URLType: AppLink})
+	assert.Contains(t, noteLinks, NoteLink{SourceNoteGUID: noteGUID, TargetNoteGUID: "4d971333-8b65-45d6-857b-243c850cabf5", Text: "PublicLink", URL: *CreateURL("https://www.evernote.com/shard/s12/sh/4d971333-8b65-45d6-857b-243c850cabf5/25771cdb535e9183/"), URLType: PublicLink})
+	assert.Contains(t, noteLinks, NoteLink{SourceNoteGUID: noteGUID, Text: "ShortenedLink", URL: *CreateURL("https://www.evernote.com/l/AAxNlxMzi2VF1oV7JDyFDKv1JXcc21NekYM"), URLType: ShortenedLink})
 }
 
 func CreateURL(link string) *url.URL {
