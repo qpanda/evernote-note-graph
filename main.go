@@ -15,7 +15,7 @@ func ParseArgs() (string, bool, URLType, bool, string, bool) {
 	sandbox := flag.Bool("sandbox", false, "Use sandbox.evernote.com")
 	noteURL := flag.String("noteURL", "WebLink", "WebLink or AppLink for Note URLs")
 	linkedNotes := flag.Bool("linkedNotes", true, "Include only linked Notes")
-	graphMLFilename := flag.String("graphMLFilename", "noteGraph.graphml", "GraphML output filename")
+	graphMLFilename := flag.String("graphMLFilename", "notegraph.graphml", "GraphML output filename")
 	verbose := flag.Bool("v", false, "Verbose output")
 
 	flag.Parse()

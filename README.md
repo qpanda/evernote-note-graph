@@ -23,7 +23,7 @@ Run ```evernote-note-graph -h``` to get usage information. All parameters except
     -edamAuthToken string        
             Evernote API auth token
     -graphMLFilename string
-            GraphML output filename (default "noteGraph.graphml")
+            GraphML output filename (default "notegraph.graphml")
     -linkedNotes
             Include only linked Notes (default true)
     -noteURL string
